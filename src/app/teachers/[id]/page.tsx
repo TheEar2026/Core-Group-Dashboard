@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { TopNav } from "@/components/top-nav";
+import { AppShell } from "@/components/app-shell";
 import { ProgressBar, StatusBadge } from "@/components/brand";
 import { encodeCourseKey } from "@/lib/course-key";
 import type { TeacherRow } from "../teacher-table";
@@ -102,17 +102,14 @@ export default async function TeacherDetailPage({
   }).length;
 
   return (
-    <div className="min-h-screen bg-[var(--brand-bg)] text-[var(--on-surface)]">
-      <TopNav active="teachers" email={user?.email} />
-
-      <main className="mx-auto max-w-[1440px] px-6 pb-12 pt-24">
-        <Link
-          href="/teachers"
-          className="mb-4 inline-block text-sm font-medium"
-          style={{ color: "var(--brand-gold)" }}
-        >
-          ← Back to Teachers
-        </Link>
+    <AppShell email={user?.email}>
+      <Link
+        href="/teachers"
+        className="mb-4 inline-block text-sm font-medium"
+        style={{ color: "var(--brand-gold)" }}
+      >
+        ← Back to Teachers
+      </Link>
 
         <header className="mb-8">
           <h1 className="text-[30px] font-bold tracking-[-0.02em]">
@@ -125,7 +122,7 @@ export default async function TeacherDetailPage({
 
         {/* Stat strip */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Lessons completed
             </p>
@@ -137,13 +134,13 @@ export default async function TeacherDetailPage({
               </span>
             </p>
           </div>
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Logins this month
             </p>
             <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{loginsThisMonth}</p>
           </div>
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Last active
             </p>
@@ -156,7 +153,7 @@ export default async function TeacherDetailPage({
         {/* Two-panel layout */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Login activity */}
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <h2 className="mb-4 text-base font-semibold">Login activity</h2>
             {loginEvents.length === 0 ? (
               <p className="text-sm text-[var(--on-surface-variant)]">No login activity recorded.</p>
@@ -184,7 +181,7 @@ export default async function TeacherDetailPage({
           </div>
 
           {/* Lesson progress */}
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <h2 className="mb-4 text-base font-semibold">Lesson progress</h2>
             {lessons.length === 0 ? (
               <p className="text-sm text-[var(--on-surface-variant)]">No lesson data recorded.</p>
@@ -219,7 +216,6 @@ export default async function TeacherDetailPage({
             )}
           </div>
         </div>
-      </main>
-    </div>
+    </AppShell>
   );
 }

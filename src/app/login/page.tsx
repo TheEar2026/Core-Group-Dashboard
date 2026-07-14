@@ -14,7 +14,7 @@ export default function LoginPage() {
           </p>
         </header>
 
-        <section className="rounded-xl border border-[var(--brand-border)] bg-white p-8 shadow-sm">
+        <section className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-8 shadow-sm">
           <LoginForm />
         </section>
 

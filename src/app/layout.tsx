@@ -19,7 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        {/* Apply the saved (or system) theme before first paint to avoid a flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.dataset.theme=t;}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
   );

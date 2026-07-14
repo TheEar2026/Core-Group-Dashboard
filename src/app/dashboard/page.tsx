@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/brand";
-import { TopNav } from "@/components/top-nav";
+import { AppShell } from "@/components/app-shell";
 
 export type SchoolReportRow = {
   school_id: number;
@@ -70,12 +70,9 @@ export default async function DashboardPage() {
     .at(-1);
 
   return (
-    <div className="min-h-screen bg-[var(--brand-bg)] text-[var(--on-surface)]">
-      <TopNav active="dashboard" email={user?.email} />
-
-      <main className="mx-auto max-w-[1440px] px-6 pb-12 pt-24">
-        <header className="mb-8">
-          <h1 className="text-[30px] font-bold tracking-[-0.02em]">School Report</h1>
+    <AppShell email={user?.email}>
+      <header className="mb-8">
+        <h1 className="text-[30px] font-bold tracking-[-0.02em]">School Report</h1>
           <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
             Institutional performance across Drived, Vimeo, Product Fruits, and the LMS.
           </p>
@@ -102,7 +99,7 @@ export default async function DashboardPage() {
         )}
 
         {rows.length > 0 && (
-          <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-white shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
@@ -118,8 +115,8 @@ export default async function DashboardPage() {
                     <th className={`${TH} text-center`} colSpan={3}>LMS</th>
                   </tr>
                   {/* Column header row */}
-                  <tr className="border-b border-[var(--brand-border)] bg-white">
-                    <th className={`sticky left-0 z-20 bg-white ${TH} ${BORDER_R}`}>School</th>
+                  <tr className="border-b border-[var(--brand-border)] bg-[var(--surface)]">
+                    <th className={`sticky left-0 z-20 bg-[var(--surface)] ${TH} ${BORDER_R}`}>School</th>
                     <th className={TH}>Users</th>
                     <th className={TH}>Invited</th>
                     <th className={TH}>Accepted</th>
@@ -142,7 +139,7 @@ export default async function DashboardPage() {
                   {rows.map((r) => (
                     <tr key={r.school_id} className="group transition-colors hover:bg-[var(--brand-bg)]">
                       <td
-                        className={`sticky left-0 z-10 bg-white group-hover:bg-[var(--brand-bg)] ${TD} ${BORDER_R} font-semibold`}
+                        className={`sticky left-0 z-10 bg-[var(--surface)] group-hover:bg-[var(--brand-bg)] ${TD} ${BORDER_R} font-semibold`}
                       >
                         <Link
                           href={`/schools/${r.school_id}`}
@@ -188,7 +185,6 @@ export default async function DashboardPage() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+    </AppShell>
   );
 }

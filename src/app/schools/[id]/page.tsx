@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { TopNav } from "@/components/top-nav";
+import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/brand";
 import { TrendChart, ChartLegend } from "@/components/trend-chart";
 import type { SchoolReportRow } from "@/app/dashboard/page";
@@ -68,17 +68,14 @@ export default async function SchoolTrendPage({
   const dates = trend.map((t) => t.snapshot_date);
 
   return (
-    <div className="min-h-screen bg-[var(--brand-bg)] text-[var(--on-surface)]">
-      <TopNav active="dashboard" email={user?.email} />
-
-      <main className="mx-auto max-w-[1440px] px-6 pb-12 pt-24">
-        <Link
-          href="/dashboard"
-          className="mb-4 inline-block text-sm font-medium"
-          style={{ color: "var(--brand-gold)" }}
-        >
-          ← Back to School Report
-        </Link>
+    <AppShell email={user?.email}>
+      <Link
+        href="/dashboard"
+        className="mb-4 inline-block text-sm font-medium"
+        style={{ color: "var(--brand-gold)" }}
+      >
+        ← Back to School Report
+      </Link>
 
         <header className="mb-8">
           <h1 className="text-[30px] font-bold tracking-[-0.02em]">{summary.school_name}</h1>
@@ -87,13 +84,13 @@ export default async function SchoolTrendPage({
 
         {/* KPI strip */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Total users
             </p>
             <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{fmt(summary.drived_users)}</p>
           </div>
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Avg watch %
             </p>
@@ -101,7 +98,7 @@ export default async function SchoolTrendPage({
               <StatusBadge value={num(summary.vimeo_avg_pct_watched)} />
             </div>
           </div>
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Lessons completed
             </p>
@@ -113,7 +110,7 @@ export default async function SchoolTrendPage({
               </span>
             </p>
           </div>
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Completion %
             </p>
@@ -130,7 +127,7 @@ export default async function SchoolTrendPage({
         ) : (
           <div className="grid grid-cols-1 gap-6">
             {/* Drived adoption */}
-            <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+            <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
               <h2 className="mb-2 text-base font-semibold">Drived adoption</h2>
               <ChartLegend
                 series={[
@@ -155,7 +152,7 @@ export default async function SchoolTrendPage({
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Vimeo watch % */}
-              <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+              <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
                 <h2 className="mb-2 text-base font-semibold">Vimeo watch %</h2>
                 <TrendChart
                   dates={dates}
@@ -172,7 +169,7 @@ export default async function SchoolTrendPage({
               </div>
 
               {/* Lesson completion % */}
-              <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+              <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
                 <h2 className="mb-2 text-base font-semibold">Lesson completion %</h2>
                 <TrendChart
                   dates={dates}
@@ -189,7 +186,6 @@ export default async function SchoolTrendPage({
             </div>
           </div>
         )}
-      </main>
-    </div>
+    </AppShell>
   );
 }

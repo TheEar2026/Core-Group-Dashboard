@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { TopNav } from "@/components/top-nav";
+import { AppShell } from "@/components/app-shell";
 import { TeacherTable, type TeacherRow } from "./teacher-table";
 
 export default async function TeachersPage() {
@@ -13,16 +13,13 @@ export default async function TeachersPage() {
   const rows = (data ?? []) as TeacherRow[];
 
   return (
-    <div className="min-h-screen bg-[var(--brand-bg)] text-[var(--on-surface)]">
-      <TopNav active="teachers" email={user?.email} />
-
-      <main className="mx-auto max-w-[1440px] px-6 pb-12 pt-24">
-        <header className="mb-8">
-          <h1 className="text-[30px] font-bold tracking-[-0.02em]">Teachers</h1>
-          <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
-            Teacher engagement and lesson completion for your school.
-          </p>
-        </header>
+    <AppShell email={user?.email}>
+      <header className="mb-8">
+        <h1 className="text-[30px] font-bold tracking-[-0.02em]">Teachers</h1>
+        <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
+          Teacher engagement and lesson completion for your school.
+        </p>
+      </header>
 
         {error && (
           <div
@@ -45,7 +42,6 @@ export default async function TeachersPage() {
         )}
 
         {rows.length > 0 && <TeacherTable rows={rows} />}
-      </main>
-    </div>
+    </AppShell>
   );
 }

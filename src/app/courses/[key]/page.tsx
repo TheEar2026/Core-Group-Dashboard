@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { TopNav } from "@/components/top-nav";
+import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/brand";
 import { decodeCourseKey } from "@/lib/course-key";
 
@@ -83,17 +83,14 @@ export default async function CourseDetailPage({
   const showSchoolColumn = new Set(rows.map((r) => r.school_id)).size > 1;
 
   return (
-    <div className="min-h-screen bg-[var(--brand-bg)] text-[var(--on-surface)]">
-      <TopNav active="teachers" email={user?.email} />
-
-      <main className="mx-auto max-w-[1440px] px-6 pb-12 pt-24">
-        <Link
-          href="/teachers"
-          className="mb-4 inline-block text-sm font-medium"
-          style={{ color: "var(--brand-gold)" }}
-        >
-          ← Back to Teachers
-        </Link>
+    <AppShell email={user?.email}>
+      <Link
+        href="/teachers"
+        className="mb-4 inline-block text-sm font-medium"
+        style={{ color: "var(--brand-gold)" }}
+      >
+        ← Back to Teachers
+      </Link>
 
         <header className="mb-8">
           <h1 className="text-[30px] font-bold tracking-[-0.02em]">{courseTitle}</h1>
@@ -118,13 +115,13 @@ export default async function CourseDetailPage({
 
         {/* KPI strip */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Teachers tracked
             </p>
             <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{teacherCount}</p>
           </div>
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Avg completion %
             </p>
@@ -132,7 +129,7 @@ export default async function CourseDetailPage({
               <StatusBadge value={avgCompletion} />
             </div>
           </div>
-          <div className="rounded-xl border border-[var(--brand-border)] bg-white p-6">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Lessons completed
             </p>
@@ -144,7 +141,7 @@ export default async function CourseDetailPage({
         </div>
 
         {/* Per-teacher completion table */}
-        <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
@@ -187,7 +184,6 @@ export default async function CourseDetailPage({
             Showing {rows.length} {rows.length === 1 ? "teacher" : "teachers"}
           </div>
         </div>
-      </main>
-    </div>
+    </AppShell>
   );
 }

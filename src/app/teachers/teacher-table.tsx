@@ -115,7 +115,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] shadow-sm">
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 border-b border-[var(--brand-border)] p-4">
         <input

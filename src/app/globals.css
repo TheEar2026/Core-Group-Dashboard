@@ -16,6 +16,17 @@
   --status-danger: #dc2626;
 }
 
+/* Dark theme — only surfaces/text flip; gold + status colours stay,
+   they read fine on both (gold actually has better contrast on dark). */
+:root[data-theme="dark"] {
+  --brand-bg: #1b1a17;
+  --brand-border: #38352e;
+  --brand-header-tint: #2c2a25;
+  --surface: #24231f;
+  --on-surface: #ebe9e4;
+  --on-surface-variant: #a39d92;
+}
+
 @theme inline {
   --font-sans: var(--font-inter);
   --color-brand-gold: var(--brand-gold);
