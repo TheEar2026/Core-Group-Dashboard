@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TopNav } from "@/components/top-nav";
 import { ProgressBar, StatusBadge } from "@/components/brand";
+import { encodeCourseKey } from "@/lib/course-key";
 import type { TeacherRow } from "../teacher-table";
 
 type LoginEvent = {
@@ -195,7 +196,17 @@ export default async function TeacherDetailPage({
                     className="rounded-lg border border-[var(--brand-border)] p-4"
                   >
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold">{l.course_title ?? "Untitled course"}</span>
+                      {l.course_url ? (
+                        <Link
+                          href={`/courses/${encodeCourseKey(l.course_url)}`}
+                          className="text-sm font-semibold hover:underline"
+                          style={{ color: "var(--brand-gold)" }}
+                        >
+                          {l.course_title ?? "Untitled course"}
+                        </Link>
+                      ) : (
+                        <span className="text-sm font-semibold">{l.course_title ?? "Untitled course"}</span>
+                      )}
                       <StatusBadge value={num(l.completion_pct)} />
                     </div>
                     <ProgressBar value={num(l.completion_pct)} />
