@@ -1,0 +1,116 @@
+import type { SVGProps } from "react";
+
+/**
+ * The Ear Academy wordmark.
+ *
+ * NOTE: this is a typographic stand-in for the real logo. When the official
+ * logo asset (SVG/PNG) is available, drop it in /public and swap this for an
+ * <Image> — the color and placement below match the brand gold (#A8884C).
+ */
+export function Wordmark({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`inline-flex items-baseline gap-1 select-none ${className}`}
+      style={{ color: "var(--brand-gold)" }}
+      aria-label="The Ear Academy"
+    >
+      <span style={{ fontWeight: 800, fontSize: "1.25rem", lineHeight: 1 }}>
+        the ear
+      </span>
+      <span
+        style={{ fontWeight: 400, letterSpacing: "0.15em", fontSize: "0.7rem" }}
+      >
+        ACADEMY
+      </span>
+    </span>
+  );
+}
+
+function CheckIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" width="12" height="12" {...props}>
+      <path
+        d="M13.5 4.5 6.5 11.5 3 8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FlatIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" width="12" height="12" {...props}>
+      <path
+        d="M3 8h10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function WarnIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" width="12" height="12" {...props}>
+      <path
+        d="M8 2 1.5 13.5h13L8 2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 6.5v3"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <circle cx="8" cy="11.6" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+/**
+ * Completion / watch-% badge. Traffic-light palette, independent of the gold
+ * brand: green >= 80, amber 60-79, red < 60. Pairs color with an icon so the
+ * status is not conveyed by color alone (accessibility).
+ *
+ * `value` is a 0-100 percentage. Null/undefined renders a neutral dash.
+ */
+export function StatusBadge({ value }: { value: number | null | undefined }) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return <span className="text-[var(--on-surface-variant)]">—</span>;
+  }
+
+  const pct = Math.round(value);
+  let color: string;
+  let Icon: (props: SVGProps<SVGSVGElement>) => React.JSX.Element;
+  let srLabel: string;
+
+  if (pct >= 80) {
+    color = "var(--status-success)";
+    Icon = CheckIcon;
+    srLabel = "on track";
+  } else if (pct >= 60) {
+    color = "var(--status-warning)";
+    Icon = FlatIcon;
+    srLabel = "needs attention";
+  } else {
+    color = "var(--status-danger)";
+    Icon = WarnIcon;
+    srLabel = "underperforming";
+  }
+
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
+      style={{ color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` }}
+    >
+      <Icon aria-hidden />
+      {pct}%<span className="sr-only"> {srLabel}</span>
+    </span>
+  );
+}

@@ -1,20 +1,56 @@
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/login/actions";
+import { StatusBadge, Wordmark } from "@/components/brand";
 
 type SchoolReportRow = {
   school_id: number;
   school_name: string;
-  drived_users: number | null;
-  drived_invited: number | null;
-  drived_accepted: number | null;
-  drived_logged: number | null;
-  drived_studied: number | null;
-  vimeo_views: number | null;
-  vimeo_unique_viewers: number | null;
-  vimeo_avg_pct_watched: number | null;
-  product_fruits_active_users: number | null;
-  lms_avg_completion_pct: number | null;
+  drived_users: number | string | null;
+  drived_invited: number | string | null;
+  drived_accepted: number | string | null;
+  drived_logged: number | string | null;
+  drived_studied: number | string | null;
+  drived_latest_snapshot_date: string | null;
+  vimeo_views: number | string | null;
+  vimeo_unique_viewers: number | string | null;
+  vimeo_avg_pct_watched: number | string | null;
+  vimeo_finishes: number | string | null;
+  product_fruits_active_users: number | string | null;
+  product_fruits_teachers: number | string | null;
+  product_fruits_admins: number | string | null;
+  product_fruits_last_activity: string | null;
+  lms_course_rows: number | string | null;
+  total_lessons_completed: number | string | null;
+  total_lessons_assigned: number | string | null;
+  lms_avg_completion_pct: number | string | null;
 };
+
+function num(v: number | string | null | undefined): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
+function fmt(v: number | string | null | undefined): string {
+  const n = num(v);
+  return n === null ? "—" : n.toLocaleString();
+}
+
+function fmtDate(v: string | null): string {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+const TH =
+  "px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--on-surface-variant)] whitespace-nowrap";
+const TD = "px-4 py-3 text-[13px] whitespace-nowrap";
+const BORDER_R = "border-r border-[var(--brand-border)]";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -26,81 +62,158 @@ export default async function DashboardPage() {
   const { data, error } = await supabase.rpc("get_my_school_report");
   const rows = (data ?? []) as SchoolReportRow[];
 
+  const latestSnapshot = rows
+    .map((r) => r.drived_latest_snapshot_date)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+
   return (
-    <main className="flex min-h-screen flex-col gap-6 p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">School Report</h1>
-          <p className="text-sm text-gray-500">{user?.email}</p>
+    <div className="min-h-screen bg-[var(--brand-bg)] text-[var(--on-surface)]">
+      {/* Top nav */}
+      <nav
+        className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between bg-white px-6"
+        style={{ borderBottom: "2px solid var(--brand-gold)" }}
+      >
+        <div className="flex items-center gap-8">
+          <Wordmark />
+          <div className="hidden items-center gap-6 md:flex">
+            <span
+              className="border-b-2 pb-1 text-base font-semibold"
+              style={{ color: "var(--brand-gold)", borderColor: "var(--brand-gold)" }}
+            >
+              Dashboard
+            </span>
+          </div>
         </div>
-        <form action={logout}>
-          <button
-            type="submit"
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+        <div className="flex items-center gap-4">
+          {user?.email && (
+            <span className="hidden text-[13px] font-medium text-[var(--on-surface-variant)] sm:block">
+              {user.email}
+            </span>
+          )}
+          <form action={logout}>
+            <button
+              type="submit"
+              className="rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)] active:scale-95"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
+      </nav>
+
+      <main className="mx-auto max-w-[1440px] px-6 pb-12 pt-24">
+        <header className="mb-8">
+          <h1 className="text-[30px] font-bold tracking-[-0.02em]">School Report</h1>
+          <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
+            Institutional performance across Drived, Vimeo, Product Fruits, and the LMS.
+          </p>
+        </header>
+
+        {error && (
+          <div
+            role="alert"
+            className="mb-6 rounded-lg border p-3 text-sm"
+            style={{
+              color: "var(--status-danger)",
+              borderColor: "color-mix(in srgb, var(--status-danger) 20%, transparent)",
+              backgroundColor: "color-mix(in srgb, var(--status-danger) 8%, transparent)",
+            }}
           >
-            Sign out
-          </button>
-        </form>
-      </div>
+            Couldn&apos;t load the report: {error.message}
+          </div>
+        )}
 
-      {error && (
-        <p className="text-sm text-red-600">
-          Couldn&apos;t load report: {error.message}
-        </p>
-      )}
+        {!error && rows.length === 0 && (
+          <p className="text-sm text-[var(--on-surface-variant)]">
+            No data available for this account.
+          </p>
+        )}
 
-      {!error && rows.length === 0 && (
-        <p className="text-sm text-gray-500">
-          No school data available for this account.
-        </p>
-      )}
+        {rows.length > 0 && (
+          <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  {/* Grouped header row */}
+                  <tr
+                    className="border-b border-[var(--brand-border)]"
+                    style={{ backgroundColor: "var(--brand-header-tint)" }}
+                  >
+                    <th className={`sticky left-0 z-20 ${BORDER_R}`} style={{ backgroundColor: "var(--brand-header-tint)" }} />
+                    <th className={`${TH} text-center ${BORDER_R}`} colSpan={5}>Drived</th>
+                    <th className={`${TH} text-center ${BORDER_R}`} colSpan={4}>Vimeo</th>
+                    <th className={`${TH} text-center ${BORDER_R}`} colSpan={4}>Product Fruits</th>
+                    <th className={`${TH} text-center`} colSpan={3}>LMS</th>
+                  </tr>
+                  {/* Column header row */}
+                  <tr className="border-b border-[var(--brand-border)] bg-white">
+                    <th className={`sticky left-0 z-20 bg-white ${TH} ${BORDER_R}`}>School</th>
+                    <th className={TH}>Users</th>
+                    <th className={TH}>Invited</th>
+                    <th className={TH}>Accepted</th>
+                    <th className={TH}>Logged in</th>
+                    <th className={`${TH} ${BORDER_R}`}>Studied</th>
+                    <th className={TH}>Views</th>
+                    <th className={TH}>Unique</th>
+                    <th className={TH}>Avg watched</th>
+                    <th className={`${TH} ${BORDER_R}`}>Finishes</th>
+                    <th className={TH}>Active</th>
+                    <th className={TH}>Teachers</th>
+                    <th className={TH}>Admins</th>
+                    <th className={`${TH} ${BORDER_R}`}>Last activity</th>
+                    <th className={TH}>Courses</th>
+                    <th className={TH}>Lessons</th>
+                    <th className={TH}>Completion</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--brand-border)]">
+                  {rows.map((r) => (
+                    <tr key={r.school_id} className="group transition-colors hover:bg-[var(--brand-bg)]">
+                      <td
+                        className={`sticky left-0 z-10 bg-white group-hover:bg-[var(--brand-bg)] ${TD} ${BORDER_R} font-semibold`}
+                        style={{ color: "var(--brand-gold)" }}
+                      >
+                        {r.school_name}
+                      </td>
+                      <td className={TD}>{fmt(r.drived_users)}</td>
+                      <td className={TD}>{fmt(r.drived_invited)}</td>
+                      <td className={TD}>{fmt(r.drived_accepted)}</td>
+                      <td className={TD}>{fmt(r.drived_logged)}</td>
+                      <td className={`${TD} ${BORDER_R}`}>{fmt(r.drived_studied)}</td>
+                      <td className={TD}>{fmt(r.vimeo_views)}</td>
+                      <td className={TD}>{fmt(r.vimeo_unique_viewers)}</td>
+                      <td className={TD}><StatusBadge value={num(r.vimeo_avg_pct_watched)} /></td>
+                      <td className={`${TD} ${BORDER_R}`}>{fmt(r.vimeo_finishes)}</td>
+                      <td className={TD}>{fmt(r.product_fruits_active_users)}</td>
+                      <td className={TD}>{fmt(r.product_fruits_teachers)}</td>
+                      <td className={TD}>{fmt(r.product_fruits_admins)}</td>
+                      <td className={`${TD} ${BORDER_R} text-[var(--on-surface-variant)]`}>
+                        {fmtDate(r.product_fruits_last_activity)}
+                      </td>
+                      <td className={TD}>{fmt(r.lms_course_rows)}</td>
+                      <td className={TD}>
+                        {fmt(r.total_lessons_completed)}
+                        <span className="text-[var(--on-surface-variant)]"> / {fmt(r.total_lessons_assigned)}</span>
+                      </td>
+                      <td className={TD}><StatusBadge value={num(r.lms_avg_completion_pct)} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-      {rows.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="py-2 pr-4 font-medium">School</th>
-                <th className="py-2 pr-4 font-medium">Drived Users</th>
-                <th className="py-2 pr-4 font-medium">Invited</th>
-                <th className="py-2 pr-4 font-medium">Accepted</th>
-                <th className="py-2 pr-4 font-medium">Logged In</th>
-                <th className="py-2 pr-4 font-medium">Studied</th>
-                <th className="py-2 pr-4 font-medium">Vimeo Views</th>
-                <th className="py-2 pr-4 font-medium">Unique Viewers</th>
-                <th className="py-2 pr-4 font-medium">Avg % Watched</th>
-                <th className="py-2 pr-4 font-medium">Product Fruits Active</th>
-                <th className="py-2 pr-4 font-medium">LMS Avg Completion %</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.school_id} className="border-b border-gray-100">
-                  <td className="py-2 pr-4">{row.school_name}</td>
-                  <td className="py-2 pr-4">{row.drived_users ?? "-"}</td>
-                  <td className="py-2 pr-4">{row.drived_invited ?? "-"}</td>
-                  <td className="py-2 pr-4">{row.drived_accepted ?? "-"}</td>
-                  <td className="py-2 pr-4">{row.drived_logged ?? "-"}</td>
-                  <td className="py-2 pr-4">{row.drived_studied ?? "-"}</td>
-                  <td className="py-2 pr-4">{row.vimeo_views ?? "-"}</td>
-                  <td className="py-2 pr-4">
-                    {row.vimeo_unique_viewers ?? "-"}
-                  </td>
-                  <td className="py-2 pr-4">
-                    {row.vimeo_avg_pct_watched ?? "-"}
-                  </td>
-                  <td className="py-2 pr-4">
-                    {row.product_fruits_active_users ?? "-"}
-                  </td>
-                  <td className="py-2 pr-4">
-                    {row.lms_avg_completion_pct ?? "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </main>
+            {/* Footer */}
+            <div className="flex flex-col items-center justify-between gap-2 border-t border-[var(--brand-border)] bg-[var(--brand-bg)] px-4 py-3 text-[13px] text-[var(--on-surface-variant)] sm:flex-row">
+              <span>
+                Showing {rows.length} {rows.length === 1 ? "school" : "schools"}
+              </span>
+              <span>Data as of {fmtDate(latestSnapshot ?? null)}</span>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
