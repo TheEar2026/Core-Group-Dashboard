@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/brand";
 import { TopNav } from "@/components/top-nav";
 
-type SchoolReportRow = {
+export type SchoolReportRow = {
   school_id: number;
   school_name: string;
   drived_users: number | string | null;
@@ -142,9 +143,14 @@ export default async function DashboardPage() {
                     <tr key={r.school_id} className="group transition-colors hover:bg-[var(--brand-bg)]">
                       <td
                         className={`sticky left-0 z-10 bg-white group-hover:bg-[var(--brand-bg)] ${TD} ${BORDER_R} font-semibold`}
-                        style={{ color: "var(--brand-gold)" }}
                       >
-                        {r.school_name}
+                        <Link
+                          href={`/schools/${r.school_id}`}
+                          className="hover:underline"
+                          style={{ color: "var(--brand-gold)" }}
+                        >
+                          {r.school_name}
+                        </Link>
                       </td>
                       <td className={TD}>{fmt(r.drived_users)}</td>
                       <td className={TD}>{fmt(r.drived_invited)}</td>
