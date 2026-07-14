@@ -114,3 +114,34 @@ export function StatusBadge({ value }: { value: number | null | undefined }) {
     </span>
   );
 }
+
+/** Traffic-light progress bar, same thresholds as StatusBadge. */
+export function ProgressBar({ value }: { value: number | null | undefined }) {
+  const pct =
+    value === null || value === undefined || Number.isNaN(value)
+      ? 0
+      : Math.max(0, Math.min(100, value));
+
+  const color =
+    pct >= 80
+      ? "var(--status-success)"
+      : pct >= 60
+        ? "var(--status-warning)"
+        : "var(--status-danger)";
+
+  return (
+    <div
+      className="h-1.5 w-full overflow-hidden rounded-full"
+      style={{ backgroundColor: "var(--brand-header-tint)" }}
+      role="progressbar"
+      aria-valuenow={pct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <div
+        className="h-full rounded-full transition-all"
+        style={{ width: `${pct}%`, backgroundColor: color }}
+      />
+    </div>
+  );
+}

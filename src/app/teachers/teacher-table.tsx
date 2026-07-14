@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/brand";
 
 export type TeacherRow = {
@@ -43,6 +44,7 @@ const TH =
 const TD = "px-4 py-3 text-[13px] whitespace-nowrap";
 
 export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("teacher_name");
   const [asc, setAsc] = useState(true);
@@ -135,11 +137,16 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
               <th className={TH}>Lessons</th>
               <SortHeader label="Completion" keyName="avg_completion_pct" />
               <SortHeader label="Last activity" keyName="last_product_fruits_activity" />
+              <th className={`${TH} w-8`} />
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--brand-border)]">
             {filtered.map((r) => (
-              <tr key={r.person_id} className="transition-colors hover:bg-[var(--brand-bg)]">
+              <tr
+                key={r.person_id}
+                onClick={() => router.push(`/teachers/${r.person_id}`)}
+                className="cursor-pointer transition-colors hover:bg-[var(--brand-bg)]"
+              >
                 <td className={`${TD} font-semibold`} style={{ color: "var(--brand-gold)" }}>
                   {r.teacher_name ?? "—"}
                 </td>
@@ -155,11 +162,12 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
                 <td className={`${TD} text-[var(--on-surface-variant)]`}>
                   {fmtDate(r.last_product_fruits_activity)}
                 </td>
+                <td className={`${TD} text-[var(--on-surface-variant)]`}>›</td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
+                <td colSpan={7} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
                   {query ? "No teachers match your search." : "No teachers to show."}
                 </td>
               </tr>
