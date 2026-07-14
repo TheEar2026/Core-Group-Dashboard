@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "@/app/login/actions";
-import { StatusBadge, Wordmark } from "@/components/brand";
+import { StatusBadge } from "@/components/brand";
+import { TopNav } from "@/components/top-nav";
 
 type SchoolReportRow = {
   school_id: number;
@@ -70,38 +70,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[var(--brand-bg)] text-[var(--on-surface)]">
-      {/* Top nav */}
-      <nav
-        className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between bg-white px-6"
-        style={{ borderBottom: "2px solid var(--brand-gold)" }}
-      >
-        <div className="flex items-center gap-8">
-          <Wordmark />
-          <div className="hidden items-center gap-6 md:flex">
-            <span
-              className="border-b-2 pb-1 text-base font-semibold"
-              style={{ color: "var(--brand-gold)", borderColor: "var(--brand-gold)" }}
-            >
-              Dashboard
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          {user?.email && (
-            <span className="hidden text-[13px] font-medium text-[var(--on-surface-variant)] sm:block">
-              {user.email}
-            </span>
-          )}
-          <form action={logout}>
-            <button
-              type="submit"
-              className="rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)] active:scale-95"
-            >
-              Sign out
-            </button>
-          </form>
-        </div>
-      </nav>
+      <TopNav active="dashboard" email={user?.email} />
 
       <main className="mx-auto max-w-[1440px] px-6 pb-12 pt-24">
         <header className="mb-8">
