@@ -51,10 +51,12 @@ export default async function SchoolTrendPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [reportRes, trendRes] = await Promise.all([
+  const [roleRes, reportRes, trendRes] = await Promise.all([
+    supabase.rpc("get_my_role"),
     supabase.rpc("get_my_school_report"),
     supabase.rpc("get_my_school_trend", { target_school_id: schoolId }),
   ]);
+  const role = roleRes.data as string | null;
 
   const summary = ((reportRes.data ?? []) as SchoolReportRow[]).find(
     (s) => s.school_id === schoolId,
@@ -68,7 +70,7 @@ export default async function SchoolTrendPage({
   const dates = trend.map((t) => t.snapshot_date);
 
   return (
-    <AppShell email={user?.email}>
+    <AppShell email={user?.email} role={role}>
       <Link
         href="/dashboard"
         className="mb-4 inline-block text-sm font-medium"

@@ -78,11 +78,13 @@ export default async function TeacherDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [teacherReportRes, loginActivityRes, lessonProgressRes] = await Promise.all([
+  const [roleRes, teacherReportRes, loginActivityRes, lessonProgressRes] = await Promise.all([
+    supabase.rpc("get_my_role"),
     supabase.rpc("get_my_teacher_report"),
     supabase.rpc("get_teacher_login_activity", { target_person_id: personId }),
     supabase.rpc("get_teacher_lesson_progress", { target_person_id: personId }),
   ]);
+  const role = roleRes.data as string | null;
 
   const profile = ((teacherReportRes.data ?? []) as TeacherRow[]).find(
     (t) => t.person_id === personId,
@@ -102,7 +104,7 @@ export default async function TeacherDetailPage({
   }).length;
 
   return (
-    <AppShell email={user?.email}>
+    <AppShell email={user?.email} role={role}>
       <Link
         href="/teachers"
         className="mb-4 inline-block text-sm font-medium"

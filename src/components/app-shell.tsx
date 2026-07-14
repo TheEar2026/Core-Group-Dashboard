@@ -6,9 +6,12 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/app/login/actions";
 import { Wordmark } from "@/components/brand";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", match: (p: string) => p === "/dashboard" || p.startsWith("/schools") },
-  { href: "/teachers", label: "Teachers", match: (p: string) => p.startsWith("/teachers") || p.startsWith("/courses") },
+type NavItem = { href: string; label: string; match: (p: string) => boolean; superAdminOnly?: boolean };
+
+const NAV: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard", match: (p) => p === "/dashboard" || p.startsWith("/schools") },
+  { href: "/teachers", label: "Teachers", match: (p) => p.startsWith("/teachers") || p.startsWith("/courses") },
+  { href: "/manage", label: "Manage", match: (p) => p.startsWith("/manage"), superAdminOnly: true },
 ];
 
 function iconProps(size = 20) {
@@ -26,9 +29,11 @@ function iconProps(size = 20) {
 
 export function AppShell({
   email,
+  role,
   children,
 }: {
   email?: string | null;
+  role?: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -134,7 +139,7 @@ export function AppShell({
         }`}
       >
         <nav className="flex flex-col gap-1">
-          {NAV.map((item) => {
+          {NAV.filter((item) => !item.superAdminOnly || role === "super_admin").map((item) => {
             const active = item.match(pathname);
             return (
               <Link

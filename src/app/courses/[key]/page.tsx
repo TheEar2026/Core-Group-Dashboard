@@ -56,6 +56,7 @@ export default async function CourseDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  const { data: role } = await supabase.rpc("get_my_role");
   const { data, error } = await supabase.rpc("get_course_completion", {
     target_course_url: courseUrl,
   });
@@ -83,7 +84,7 @@ export default async function CourseDetailPage({
   const showSchoolColumn = new Set(rows.map((r) => r.school_id)).size > 1;
 
   return (
-    <AppShell email={user?.email}>
+    <AppShell email={user?.email} role={role}>
       <Link
         href="/teachers"
         className="mb-4 inline-block text-sm font-medium"

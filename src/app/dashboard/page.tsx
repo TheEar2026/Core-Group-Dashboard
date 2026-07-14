@@ -60,6 +60,7 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const { data: role } = await supabase.rpc("get_my_role");
   const { data, error } = await supabase.rpc("get_my_school_report");
   const rows = (data ?? []) as SchoolReportRow[];
 
@@ -70,7 +71,7 @@ export default async function DashboardPage() {
     .at(-1);
 
   return (
-    <AppShell email={user?.email}>
+    <AppShell email={user?.email} role={role}>
       <header className="mb-8">
         <h1 className="text-[30px] font-bold tracking-[-0.02em]">School Report</h1>
           <p className="mt-1 text-sm text-[var(--on-surface-variant)]">

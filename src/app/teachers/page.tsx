@@ -9,11 +9,12 @@ export default async function TeachersPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const { data: role } = await supabase.rpc("get_my_role");
   const { data, error } = await supabase.rpc("get_my_teacher_report");
   const rows = (data ?? []) as TeacherRow[];
 
   return (
-    <AppShell email={user?.email}>
+    <AppShell email={user?.email} role={role}>
       <header className="mb-8">
         <h1 className="text-[30px] font-bold tracking-[-0.02em]">Teachers</h1>
         <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
