@@ -7,7 +7,7 @@ export default function LoginPage() {
       <div className="z-10 w-full max-w-[420px]">
         <header className="mb-8 text-center">
           <div className="mb-4 flex justify-center">
-            <Wordmark className="scale-125" />
+            <Wordmark className="h-20 w-auto" />
           </div>
           <p className="text-[13px] font-medium uppercase tracking-wider text-[var(--on-surface-variant)]">
             Core Group Dashboard

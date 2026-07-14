@@ -1,28 +1,17 @@
 import type { SVGProps } from "react";
+import Image from "next/image";
 
-/**
- * The Ear Academy wordmark.
- *
- * NOTE: this is a typographic stand-in for the real logo. When the official
- * logo asset (SVG/PNG) is available, drop it in /public and swap this for an
- * <Image> — the color and placement below match the brand gold (#A8884C).
- */
-export function Wordmark({ className = "" }: { className?: string }) {
+/** The Ear Academy logo. */
+export function Wordmark({ className = "h-8 w-auto" }: { className?: string }) {
   return (
-    <span
-      className={`inline-flex items-baseline gap-1 select-none ${className}`}
-      style={{ color: "var(--brand-gold)" }}
-      aria-label="The Ear Academy"
-    >
-      <span style={{ fontWeight: 800, fontSize: "1.25rem", lineHeight: 1 }}>
-        the ear
-      </span>
-      <span
-        style={{ fontWeight: 400, letterSpacing: "0.15em", fontSize: "0.7rem" }}
-      >
-        ACADEMY
-      </span>
-    </span>
+    <Image
+      src="/ear-academy-logo.png"
+      alt="The Ear Academy"
+      width={452}
+      height={240}
+      priority
+      className={className}
+    />
   );
 }
 
