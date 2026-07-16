@@ -159,13 +159,19 @@ They are ordered by timestamp filename.
 - Collapsible menu + dark mode
 - Super-admin management (create schools/teachers, assign school + course)
 - Identity match-review tool (LMS names → people, backfills completions)
+- **Settings → Data uploads**: per-source cards (Drive Ed, Vimeo, Product
+  Fruits, LMS) that accept CSV *or* Excel (.xlsx), preview + column-match,
+  then load idempotently by snapshot date. Super-admin only.
+- **School-admin scope**: school admins now get read-only oversight of all 12
+  schools/teachers via `identity.is_school_admin()` in the report RPCs
+  (migration `..100000`). Writes stay super-admin-only; Manage/Settings redirect
+  them to the dashboard.
 - Deployed on Vercel with Git auto-deploy
 
 **Remaining / next**
-- **School-admin scope change**: make school admins see all 12 schools
-  (read-only). Currently they're scoped to their own school. This is a decided
-  change not yet implemented — update the report RPCs' WHERE clauses to also
-  allow a school-admin check, and confirm they don't get Manage.
+- **Validate Product Fruits & LMS upload parsers** against real export files
+  (Drive Ed + Vimeo are confirmed). If a required column shows "— not found",
+  adjust the alias lists in `src/app/settings/mappings.ts`.
 - **Resolve the 18 pending LMS matches** (one click: "Create all pending").
 - **Run the Product Fruits school backfill** (button on Match Review).
 - **Data ingestion**: the `staging → fact` population + the per-school LMS
