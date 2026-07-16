@@ -19,22 +19,48 @@ export function UploadCard({ config }: { config: SourceConfig }) {
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  function applyPreview(headers: string[], rows: Record<string, unknown>[]) {
+    if (headers.length === 0) {
+      setParseError("Couldn't read any columns from that file. Is there a header row?");
+      return;
+    }
+    setPreview(mapRows(config, headers, rows));
+  }
+
   function handleFile(file: File) {
     setResult(null);
     setParseError(null);
     setPreview(null);
     setFileName(file.name);
+
+    const isExcel = /\.(xlsx|xls)$/i.test(file.name);
+    if (isExcel) {
+      // Excel: parse the first sheet with SheetJS (dynamically imported so it
+      // only loads when an Excel file is actually chosen).
+      file
+        .arrayBuffer()
+        .then(async (buf) => {
+          const XLSX = await import("xlsx");
+          const wb = XLSX.read(buf, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          if (!ws) {
+            setParseError("That workbook has no sheets.");
+            return;
+          }
+          const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "" });
+          const headers = ((aoa[0] as unknown[]) ?? []).map((h) => String(h ?? "").trim()).filter(Boolean);
+          const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "", raw: false });
+          applyPreview(headers, rows);
+        })
+        .catch((e) => setParseError(e instanceof Error ? e.message : "Couldn't read that Excel file."));
+      return;
+    }
+
+    // CSV
     Papa.parse<Record<string, unknown>>(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (res) => {
-        const headers = res.meta.fields ?? [];
-        if (headers.length === 0) {
-          setParseError("Couldn't read any columns from that file. Is it a CSV with a header row?");
-          return;
-        }
-        setPreview(mapRows(config, headers, res.data));
-      },
+      complete: (res) => applyPreview(res.meta.fields ?? [], res.data),
       error: (err) => setParseError(err.message),
     });
   }
@@ -63,7 +89,7 @@ export function UploadCard({ config }: { config: SourceConfig }) {
       <div className="mb-1 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold">{config.label}</h2>
         <span className="rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ color: "var(--brand-gold)", backgroundColor: "color-mix(in srgb, var(--brand-gold) 12%, transparent)" }}>
-          CSV
+          CSV / Excel
         </span>
       </div>
       <p className="mb-4 text-sm text-[var(--on-surface-variant)]">{config.description}</p>
@@ -82,11 +108,11 @@ export function UploadCard({ config }: { config: SourceConfig }) {
           />
         </div>
         <label className="cursor-pointer rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]">
-          {fileName ? "Choose a different file" : "Choose CSV file"}
+          {fileName ? "Choose a different file" : "Choose file"}
           <input
             ref={inputRef}
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
