@@ -9,7 +9,8 @@ import { Wordmark } from "@/components/brand";
 type NavItem = { href: string; label: string; match: (p: string) => boolean; superAdminOnly?: boolean };
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", match: (p) => p === "/dashboard" || p.startsWith("/schools") },
+  { href: "/analytics", label: "Analytics", match: (p) => p.startsWith("/analytics") },
+  { href: "/dashboard", label: "School Report", match: (p) => p === "/dashboard" || p.startsWith("/schools") },
   { href: "/teachers", label: "Teachers", match: (p) => p.startsWith("/teachers") || p.startsWith("/courses") },
   { href: "/manage", label: "Manage", match: (p) => p.startsWith("/manage"), superAdminOnly: true },
   { href: "/settings", label: "Settings", match: (p) => p.startsWith("/settings"), superAdminOnly: true },
