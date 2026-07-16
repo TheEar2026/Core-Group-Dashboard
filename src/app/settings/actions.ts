@@ -1,0 +1,39 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import type { SourceKey } from "./mappings";
+
+const RPC: Record<SourceKey, string> = {
+  drived: "admin_ingest_drived",
+  vimeo: "admin_ingest_vimeo",
+  product_fruits: "admin_ingest_product_fruits",
+  lms: "admin_ingest_lms",
+};
+
+export type IngestResult = { ok: boolean; message: string };
+
+export async function ingestRows(
+  source: SourceKey,
+  snapshotDate: string,
+  rows: Record<string, string>[],
+): Promise<IngestResult> {
+  if (!snapshotDate) return { ok: false, message: "Please choose a snapshot date." };
+  if (!rows || rows.length === 0) return { ok: false, message: "No rows to load." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc(RPC[source], {
+    p_rows: rows,
+    p_snapshot_date: snapshotDate,
+  });
+
+  if (error) return { ok: false, message: error.message };
+
+  // Refresh the pages that read this data.
+  revalidatePath("/dashboard");
+  revalidatePath("/teachers");
+  revalidatePath("/manage");
+
+  const n = typeof data === "number" ? data : rows.length;
+  return { ok: true, message: `Loaded ${n} row${n === 1 ? "" : "s"} into the dashboard.` };
+}
