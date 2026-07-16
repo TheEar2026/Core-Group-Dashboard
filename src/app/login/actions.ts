@@ -26,7 +26,7 @@ export async function login(
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect("/analytics");
 }
 
 export async function logout() {

@@ -88,7 +88,7 @@ export function AppShell({
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <Link href="/dashboard" aria-label="The Ear Academy — Dashboard">
+          <Link href="/analytics" aria-label="The Ear Academy — Analytics">
             <Wordmark className="h-7 w-auto" />
           </Link>
         </div>

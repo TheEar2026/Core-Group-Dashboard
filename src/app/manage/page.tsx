@@ -20,7 +20,7 @@ export default async function ManagePage() {
 
   // Management is super-admin only. School admins / teachers get bounced.
   if (role !== "super_admin") {
-    redirect("/dashboard");
+    redirect("/analytics");
   }
 
   const [schoolsRes, teachersRes, assignmentsRes] = await Promise.all([

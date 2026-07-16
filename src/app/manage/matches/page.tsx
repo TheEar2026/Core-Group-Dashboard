@@ -13,7 +13,7 @@ export default async function MatchesPage() {
 
   const { data: role } = await supabase.rpc("get_my_role");
   if (role !== "super_admin") {
-    redirect("/dashboard");
+    redirect("/analytics");
   }
 
   const [queueRes, teachersRes] = await Promise.all([

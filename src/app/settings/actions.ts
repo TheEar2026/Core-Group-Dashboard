@@ -30,6 +30,7 @@ export async function ingestRows(
   if (error) return { ok: false, message: error.message };
 
   // Refresh the pages that read this data.
+  revalidatePath("/analytics");
   revalidatePath("/dashboard");
   revalidatePath("/teachers");
   revalidatePath("/manage");
