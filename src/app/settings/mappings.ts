@@ -60,7 +60,7 @@ export const SOURCES: Record<SourceKey, SourceConfig> = {
       surname: ["surname", "lastname", "last"],
       full_name: ["fullname", "name"],
       event_datetime_raw: ["eventdatetime", "datetime", "date", "lastseen", "lastactivity", "timestamp", "logindate", "lastlogin"],
-      user_role: ["userrole", "role"],
+      user_role: ["userrole", "userroles", "roles", "role"],
       school_name: ["schoolname", "school"],
       product_type: ["producttype", "product"],
       billing_status: ["billingstatus", "billing", "status"],
