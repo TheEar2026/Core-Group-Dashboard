@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { TeacherTable, type TeacherRow } from "./teacher-table";
@@ -10,6 +11,7 @@ export default async function TeachersPage() {
   } = await supabase.auth.getUser();
 
   const { data: role } = await supabase.rpc("get_my_role");
+  if (role === "teacher") redirect("/my-courses");
   const { data, error } = await supabase.rpc("get_my_teacher_report");
   const rows = (data ?? []) as TeacherRow[];
 

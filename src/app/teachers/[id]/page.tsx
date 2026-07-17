@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { ProgressBar, StatusBadge } from "@/components/brand";
@@ -100,6 +100,7 @@ export default async function TeacherDetailPage({
       supabase.rpc("get_teacher_assignments", { target_person_id: personId }),
     ]);
   const role = roleRes.data as string | null;
+  if (role === "teacher") redirect("/my-courses");
 
   const profile = ((teacherReportRes.data ?? []) as TeacherRow[]).find(
     (t) => t.person_id === personId,

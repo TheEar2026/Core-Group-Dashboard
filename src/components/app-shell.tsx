@@ -8,12 +8,18 @@ import { Wordmark } from "@/components/brand";
 
 type NavItem = { href: string; label: string; match: (p: string) => boolean; superAdminOnly?: boolean };
 
-const NAV: NavItem[] = [
+// Staff (super-admin / school-admin) navigation.
+const STAFF_NAV: NavItem[] = [
   { href: "/analytics", label: "Analytics", match: (p) => p.startsWith("/analytics") },
   { href: "/dashboard", label: "School Report", match: (p) => p === "/dashboard" || p.startsWith("/schools") },
   { href: "/teachers", label: "Teachers", match: (p) => p.startsWith("/teachers") || p.startsWith("/courses") },
   { href: "/manage", label: "Manage", match: (p) => p.startsWith("/manage"), superAdminOnly: true },
   { href: "/settings", label: "Settings", match: (p) => p.startsWith("/settings"), superAdminOnly: true },
+];
+
+// Teachers only ever see their own courses.
+const TEACHER_NAV: NavItem[] = [
+  { href: "/my-courses", label: "My Courses", match: (p) => p.startsWith("/my-courses") },
 ];
 
 function iconProps(size = 20) {
@@ -41,6 +47,12 @@ export function AppShell({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  const isTeacher = role === "teacher";
+  const nav = (isTeacher ? TEACHER_NAV : STAFF_NAV).filter(
+    (item) => !item.superAdminOnly || role === "super_admin",
+  );
+  const homeHref = isTeacher ? "/my-courses" : "/analytics";
 
   // Hydrate UI state from storage / the DOM after mount.
   useEffect(() => {
@@ -88,7 +100,7 @@ export function AppShell({
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <Link href="/analytics" aria-label="The Ear Academy — Analytics">
+          <Link href={homeHref} aria-label="The Ear Academy — Home">
             <Wordmark className="h-7 w-auto" />
           </Link>
         </div>
@@ -141,7 +153,7 @@ export function AppShell({
         }`}
       >
         <nav className="flex flex-col gap-1">
-          {NAV.filter((item) => !item.superAdminOnly || role === "super_admin").map((item) => {
+          {nav.map((item) => {
             const active = item.match(pathname);
             return (
               <Link

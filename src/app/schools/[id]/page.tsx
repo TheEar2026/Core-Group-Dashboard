@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/brand";
@@ -56,6 +56,7 @@ export default async function SchoolTrendPage({
     supabase.rpc("get_my_school_trend", { target_school_id: schoolId }),
   ]);
   const role = roleRes.data as string | null;
+  if (role === "teacher") redirect("/my-courses");
 
   const summary = ((reportRes.data ?? []) as SchoolReportRow[]).find(
     (s) => s.school_id === schoolId,

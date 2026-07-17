@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { AnalyticsCharts } from "./analytics-charts";
@@ -11,6 +12,7 @@ export default async function AnalyticsPage() {
   } = await supabase.auth.getUser();
 
   const { data: role } = await supabase.rpc("get_my_role");
+  if (role === "teacher") redirect("/my-courses");
   const { data, error } = await supabase.rpc("get_my_school_report");
   const rows = (data ?? []) as SchoolReportRow[];
 
