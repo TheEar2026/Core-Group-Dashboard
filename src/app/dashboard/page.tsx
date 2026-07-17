@@ -12,10 +12,6 @@ export type SchoolReportRow = {
   drived_logged: number | string | null;
   drived_studied: number | string | null;
   drived_latest_snapshot_date: string | null;
-  vimeo_views: number | string | null;
-  vimeo_unique_viewers: number | string | null;
-  vimeo_avg_pct_watched: number | string | null;
-  vimeo_finishes: number | string | null;
   product_fruits_active_users: number | string | null;
   product_fruits_teachers: number | string | null;
   product_fruits_admins: number | string | null;
@@ -75,7 +71,7 @@ export default async function DashboardPage() {
       <header className="mb-8">
         <h1 className="text-[30px] font-bold tracking-[-0.02em]">School Report</h1>
           <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
-            Institutional performance across Drived, Vimeo, Product Fruits, and the LMS.
+            Institutional performance across Drived, Product Fruits, and the LMS.
           </p>
         </header>
 
@@ -111,7 +107,6 @@ export default async function DashboardPage() {
                   >
                     <th className={`sticky left-0 z-20 ${BORDER_R}`} style={{ backgroundColor: "var(--brand-header-tint)" }} />
                     <th className={`${TH} text-center ${BORDER_R}`} colSpan={5}>Drived</th>
-                    <th className={`${TH} text-center ${BORDER_R}`} colSpan={4}>Vimeo</th>
                     <th className={`${TH} text-center ${BORDER_R}`} colSpan={4}>Product Fruits</th>
                     <th className={`${TH} text-center`} colSpan={3}>LMS</th>
                   </tr>
@@ -123,10 +118,6 @@ export default async function DashboardPage() {
                     <th className={TH}>Accepted</th>
                     <th className={TH}>Logged in</th>
                     <th className={`${TH} ${BORDER_R}`}>Studied</th>
-                    <th className={TH}>Views</th>
-                    <th className={TH}>Unique</th>
-                    <th className={TH}>Avg watched</th>
-                    <th className={`${TH} ${BORDER_R}`}>Finishes</th>
                     <th className={TH}>Active</th>
                     <th className={TH}>Teachers</th>
                     <th className={TH}>Admins</th>
@@ -155,10 +146,6 @@ export default async function DashboardPage() {
                       <td className={TD}>{fmt(r.drived_accepted)}</td>
                       <td className={TD}>{fmt(r.drived_logged)}</td>
                       <td className={`${TD} ${BORDER_R}`}>{fmt(r.drived_studied)}</td>
-                      <td className={TD}>{fmt(r.vimeo_views)}</td>
-                      <td className={TD}>{fmt(r.vimeo_unique_viewers)}</td>
-                      <td className={TD}><StatusBadge value={num(r.vimeo_avg_pct_watched)} /></td>
-                      <td className={`${TD} ${BORDER_R}`}>{fmt(r.vimeo_finishes)}</td>
                       <td className={TD}>{fmt(r.product_fruits_active_users)}</td>
                       <td className={TD}>{fmt(r.product_fruits_teachers)}</td>
                       <td className={TD}>{fmt(r.product_fruits_admins)}</td>

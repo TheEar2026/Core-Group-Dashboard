@@ -203,7 +203,6 @@ export function AnalyticsCharts({ rows }: { rows: SchoolReportRow[] }) {
   const lessonsDone = rows.reduce((s, r) => s + num(r.total_lessons_completed), 0);
   const lessonsAssigned = rows.reduce((s, r) => s + num(r.total_lessons_assigned), 0);
   const overallCompletion = lessonsAssigned > 0 ? Math.round((lessonsDone / lessonsAssigned) * 100) : 0;
-  const videoViews = rows.reduce((s, r) => s + num(r.vimeo_views), 0);
 
   const activeBySchool: BarDatum[] = [...rows]
     .map((r) => ({ label: r.school_name, value: num(r.product_fruits_active_users), color: "var(--brand-gold)" }))
@@ -219,12 +218,11 @@ export function AnalyticsCharts({ rows }: { rows: SchoolReportRow[] }) {
   return (
     <div className="flex flex-col gap-6">
       {/* KPI row */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Schools" value={rows.length.toLocaleString()} hint="Reporting group" />
         <Kpi label="Active users" value={compact(totalActive)} hint={`${totalTeachers.toLocaleString()} teachers · ${totalAdmins.toLocaleString()} admins`} />
         <Kpi label="Lessons completed" value={compact(lessonsDone)} hint={lessonsAssigned > 0 ? `of ${compact(lessonsAssigned)} assigned` : "No LMS data yet"} />
         <Kpi label="Avg completion" value={`${overallCompletion}%`} hint="Across all courses" />
-        <Kpi label="Video views" value={compact(videoViews)} hint="Vimeo, all schools" />
       </div>
 
       {/* Charts */}

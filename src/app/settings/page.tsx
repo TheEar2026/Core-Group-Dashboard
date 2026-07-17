@@ -29,7 +29,6 @@ export default async function SettingsPage() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <UploadCard config={SOURCES.drived} />
-        <UploadCard config={SOURCES.vimeo} />
         <UploadCard config={SOURCES.product_fruits} />
         <UploadCard config={SOURCES.lms} />
       </div>

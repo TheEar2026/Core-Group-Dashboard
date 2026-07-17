@@ -2,7 +2,7 @@
 // normalized (lowercased, non-alphanumerics stripped) and matched against the
 // alias lists below, so small header variations still map to the right field.
 
-export type SourceKey = "drived" | "vimeo" | "product_fruits" | "lms";
+export type SourceKey = "drived" | "product_fruits" | "lms";
 
 export type SourceConfig = {
   key: SourceKey;
@@ -30,24 +30,6 @@ export const SOURCES: Record<SourceKey, SourceConfig> = {
       studied: ["studied", "studying"],
     },
     required: ["core_id"],
-  },
-  vimeo: {
-    key: "vimeo",
-    label: "Vimeo",
-    description: "Per-school video engagement analytics (CSV).",
-    fields: {
-      source_url: ["sourceurl", "url", "source", "domain", "videourl", "page", "referrer"],
-      views: ["views", "plays"],
-      impressions: ["impressions"],
-      unique_impressions: ["uniqueimpressions"],
-      unique_viewers: ["uniqueviewers", "viewers"],
-      total_time_watched_seconds: ["totaltimewatchedseconds", "totaltimewatched", "timewatched"],
-      avg_time_watched_seconds: ["avgtimewatchedseconds", "averagetimewatched", "avgtimewatched"],
-      avg_pct_watched: ["avgpctwatched", "averagepercentwatched", "avgpercentwatched", "percentwatched", "avgwatched"],
-      finishes: ["finishes", "completes", "completions"],
-      downloads: ["downloads"],
-    },
-    required: ["source_url"],
   },
   product_fruits: {
     key: "product_fruits",

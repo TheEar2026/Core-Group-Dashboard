@@ -6,7 +6,6 @@ import type { SourceKey } from "./mappings";
 
 const RPC: Record<SourceKey, string> = {
   drived: "admin_ingest_drived",
-  vimeo: "admin_ingest_vimeo",
   product_fruits: "admin_ingest_product_fruits",
   lms: "admin_ingest_lms",
 };
