@@ -42,12 +42,26 @@ export default async function ManagePage() {
             Create schools and teachers, and assign teachers to schools and courses.
           </p>
         </div>
-        <Link
-          href="/manage/matches"
-          className="inline-block rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]"
-        >
-          Match review →
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/manage/courses"
+            className="inline-block rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]"
+          >
+            Courses &amp; lessons →
+          </Link>
+          <Link
+            href="/manage/logins"
+            className="inline-block rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]"
+          >
+            Teacher logins →
+          </Link>
+          <Link
+            href="/manage/matches"
+            className="inline-block rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]"
+          >
+            Match review →
+          </Link>
+        </div>
       </header>
 
       <ManageForms schools={schools} teachers={teachers} assignments={assignments} />
