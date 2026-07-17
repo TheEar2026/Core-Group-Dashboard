@@ -21,6 +21,19 @@ type LessonRow = {
   snapshot_date: string | null;
 };
 
+type AssignmentRow = {
+  grade: string | null;
+  course_title: string | null;
+  school_id: number | null;
+};
+
+/** Normalise a grade label to a short chip, e.g. "Grade 1" -> "Gr 1", "Grade R" -> "Gr R". */
+function gradeShort(g: string | null): string {
+  if (!g) return "—";
+  const m = g.match(/(\d+|R)\b/i);
+  return m ? `Gr ${m[1].toUpperCase()}` : g;
+}
+
 function num(v: number | string | null | undefined): number | null {
   if (v === null || v === undefined || v === "") return null;
   const n = typeof v === "number" ? v : Number(v);
@@ -78,12 +91,14 @@ export default async function TeacherDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [roleRes, teacherReportRes, loginActivityRes, lessonProgressRes] = await Promise.all([
-    supabase.rpc("get_my_role"),
-    supabase.rpc("get_my_teacher_report"),
-    supabase.rpc("get_teacher_login_activity", { target_person_id: personId }),
-    supabase.rpc("get_teacher_lesson_progress", { target_person_id: personId }),
-  ]);
+  const [roleRes, teacherReportRes, loginActivityRes, lessonProgressRes, assignmentsRes] =
+    await Promise.all([
+      supabase.rpc("get_my_role"),
+      supabase.rpc("get_my_teacher_report"),
+      supabase.rpc("get_teacher_login_activity", { target_person_id: personId }),
+      supabase.rpc("get_teacher_lesson_progress", { target_person_id: personId }),
+      supabase.rpc("get_teacher_assignments", { target_person_id: personId }),
+    ]);
   const role = roleRes.data as string | null;
 
   const profile = ((teacherReportRes.data ?? []) as TeacherRow[]).find(
@@ -96,6 +111,17 @@ export default async function TeacherDetailPage({
 
   const loginEvents = (loginActivityRes.data ?? []) as LoginEvent[];
   const lessons = (lessonProgressRes.data ?? []) as LessonRow[];
+  const assignments = (assignmentsRes.data ?? []) as AssignmentRow[];
+
+  // Group assigned courses by grade, preserving the RPC's Grade R -> 7 order.
+  const assignmentsByGrade: { grade: string; courses: string[] }[] = [];
+  for (const a of assignments) {
+    const grade = a.grade?.trim() || "Unspecified grade";
+    const course = a.course_title?.trim() || "Untitled course";
+    const bucket = assignmentsByGrade.find((b) => b.grade === grade);
+    if (bucket) bucket.courses.push(course);
+    else assignmentsByGrade.push({ grade, courses: [course] });
+  }
 
   const now = new Date();
   const loginsThisMonth = loginEvents.filter((e) => {
@@ -150,6 +176,52 @@ export default async function TeacherDetailPage({
               {fmtRelative(profile.last_product_fruits_activity)}
             </p>
           </div>
+        </div>
+
+        {/* Assigned grades & courses */}
+        <div className="mb-6 rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold">Assigned grades &amp; courses</h2>
+            {assignments.length > 0 && (
+              <span className="text-[13px] text-[var(--on-surface-variant)]">
+                {assignmentsByGrade.length} grade{assignmentsByGrade.length === 1 ? "" : "s"} ·{" "}
+                {assignments.length} course{assignments.length === 1 ? "" : "s"}
+              </span>
+            )}
+          </div>
+
+          {assignments.length === 0 ? (
+            <p className="text-sm text-[var(--on-surface-variant)]">
+              No grades or courses assigned yet.
+              {role === "super_admin" && " Assign them on the Manage page."}
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {assignmentsByGrade.map((b) => (
+                <div key={b.grade} className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                  <span
+                    className="inline-flex h-6 shrink-0 items-center rounded-full px-3 text-[12px] font-bold"
+                    style={{
+                      color: "var(--brand-gold)",
+                      backgroundColor: "color-mix(in srgb, var(--brand-gold) 12%, transparent)",
+                    }}
+                  >
+                    {gradeShort(b.grade)}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {b.courses.map((c, i) => (
+                      <span
+                        key={`${b.grade}-${i}`}
+                        className="rounded-lg border border-[var(--brand-border)] px-3 py-1 text-[13px]"
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Two-panel layout */}
