@@ -42,31 +42,14 @@ function fmtDate(v: string | null): string {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-/** Numeric cell that de-emphasises zeros and blanks so real values stand out. */
-function Cell({ value, className = "" }: { value: number | string | null | undefined; className?: string }) {
-  const n = num(value);
-  const isQuiet = n === null || n === 0;
-  return (
-    <td
-      className={`px-4 py-3 text-right text-[13px] tabular-nums whitespace-nowrap ${className}`}
-      style={isQuiet ? { color: "var(--on-surface-variant)", opacity: 0.55 } : undefined}
-    >
-      {n === null ? "—" : n.toLocaleString()}
-    </td>
-  );
-}
-
 type SortKey = "school_name" | "drived_users" | "product_fruits_active_users" | "lms_avg_completion_pct";
-
-const TH =
-  "px-4 py-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)] whitespace-nowrap";
-const GROUP =
-  "px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap";
+type View = "cards" | "table";
 
 export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("drived_users");
   const [asc, setAsc] = useState(false);
+  const [view, setView] = useState<View>("cards");
 
   const totals = useMemo(() => {
     const users = rows.reduce((s, r) => s + (num(r.drived_users) ?? 0), 0);
@@ -142,18 +125,11 @@ export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `school-report-${(latestSnapshot ?? new Date().toISOString().slice(0, 10))}.csv`;
+    a.download = `school-report-${latestSnapshot ?? new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-  }
-
-  function SortArrow({ k }: { k: SortKey }) {
-    const active = sortKey === k;
-    return (
-      <span style={{ color: active ? "var(--brand-gold)" : "transparent" }}>{active && asc ? "▲" : "▼"}</span>
-    );
   }
 
   return (
@@ -174,17 +150,35 @@ export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
         />
       </div>
 
-      {/* Table card */}
-      <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] shadow-sm">
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--brand-border)] p-4">
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search schools"
-            className="w-full max-w-xs rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none transition-all focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
-          />
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search schools"
+          className="w-full max-w-xs rounded-lg border border-[var(--brand-border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none transition-all focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
+        />
+        <div className="flex items-center gap-2">
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-[var(--brand-border)] bg-[var(--surface)] p-0.5">
+            {(["cards", "table"] as View[]).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                className="rounded-md px-3 py-1.5 text-[13px] font-semibold capitalize transition-colors"
+                style={
+                  view === v
+                    ? { backgroundColor: "color-mix(in srgb, var(--brand-gold) 15%, transparent)", color: "var(--brand-gold)" }
+                    : { color: "var(--on-surface-variant)" }
+                }
+              >
+                {v}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={exportCsv}
@@ -195,120 +189,256 @@ export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Export CSV
+            Export
           </button>
         </div>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
-            <thead>
-              {/* Group row */}
-              <tr style={{ backgroundColor: "var(--brand-header-tint)" }}>
-                <th className="sticky left-0 z-20" style={{ backgroundColor: "var(--brand-header-tint)" }} />
-                <th className={`${GROUP} text-left`} colSpan={5} style={{ color: "var(--brand-gold)" }}>Drived</th>
-                <th className={`${GROUP} text-right`} colSpan={4} style={{ color: "var(--brand-gold)" }}>Product Fruits</th>
-                <th className={`${GROUP} text-right`} colSpan={3} style={{ color: "var(--brand-gold)" }}>LMS</th>
-              </tr>
-              {/* Column row */}
-              <tr className="border-b border-[var(--brand-border)]" style={{ backgroundColor: "var(--brand-header-tint)" }}>
-                <th className={`sticky left-0 z-20 ${TH} text-left`} style={{ backgroundColor: "var(--brand-header-tint)", minWidth: "13rem" }}>
-                  <button type="button" onClick={() => toggleSort("school_name")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
-                    School <SortArrow k="school_name" />
-                  </button>
-                </th>
-                <th className={`${TH} text-right`}>
-                  <button type="button" onClick={() => toggleSort("drived_users")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
-                    Users <SortArrow k="drived_users" />
-                  </button>
-                </th>
-                <th className={`${TH} text-right`}>Invited</th>
-                <th className={`${TH} text-right`}>Accepted</th>
-                <th className={`${TH} text-right`}>Logged in</th>
-                <th className={`${TH} text-right`}>Studied</th>
-                <th className={`${TH} text-right`}>
-                  <button type="button" onClick={() => toggleSort("product_fruits_active_users")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
-                    Active <SortArrow k="product_fruits_active_users" />
-                  </button>
-                </th>
-                <th className={`${TH} text-right`}>Teachers</th>
-                <th className={`${TH} text-right`}>Admins</th>
-                <th className={`${TH} text-right`}>Last activity</th>
-                <th className={`${TH} text-right`}>Courses</th>
-                <th className={`${TH} text-right`}>Lessons</th>
-                <th className={`${TH} text-right`}>
-                  <button type="button" onClick={() => toggleSort("lms_avg_completion_pct")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
-                    Completion <SortArrow k="lms_avg_completion_pct" />
-                  </button>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--brand-border)]">
-              {filtered.map((r) => {
-                const users = num(r.drived_users);
-                const lessonsDone = num(r.total_lessons_completed);
-                const lessonsAssigned = num(r.total_lessons_assigned);
-                return (
-                  <tr key={r.school_id} className="group transition-colors hover:bg-[var(--brand-bg)]">
-                    {/* School (sticky) */}
-                    <td className="sticky left-0 z-10 whitespace-nowrap bg-[var(--surface)] px-4 py-3 group-hover:bg-[var(--brand-bg)]" style={{ minWidth: "13rem" }}>
-                      <Link href={`/schools/${r.school_id}`} className="text-[13px] font-semibold hover:underline" style={{ color: "var(--brand-gold)" }}>
-                        {r.school_name}
-                      </Link>
-                    </td>
-                    {/* Users with magnitude bar */}
-                    <td className="px-4 py-3 text-right align-middle">
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-[13px] font-semibold tabular-nums">{users === null ? "—" : users.toLocaleString()}</span>
-                        <div className="h-1 w-16 overflow-hidden rounded-full" style={{ backgroundColor: "var(--brand-header-tint)" }}>
-                          <div className="h-full rounded-full" style={{ width: `${((users ?? 0) / maxUsers) * 100}%`, backgroundColor: "var(--brand-gold)" }} />
-                        </div>
+      {filtered.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--surface)] p-12 text-center text-sm text-[var(--on-surface-variant)]">
+          No schools match “{query}”.
+        </div>
+      ) : view === "cards" ? (
+        <SchoolCards rows={filtered} maxUsers={maxUsers} />
+      ) : (
+        <DataTable rows={filtered} maxUsers={maxUsers} sortKey={sortKey} asc={asc} toggleSort={toggleSort} />
+      )}
+
+      <p className="text-[13px] text-[var(--on-surface-variant)]">
+        Showing {filtered.length} of {rows.length} {rows.length === 1 ? "school" : "schools"} · Data as of{" "}
+        {fmtDate(latestSnapshot)}
+      </p>
+    </div>
+  );
+}
+
+/* ---------------- Card view ---------------- */
+
+function SchoolCards({ rows, maxUsers }: { rows: SchoolReportRow[]; maxUsers: number }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {rows.map((r) => (
+        <SchoolCard key={r.school_id} r={r} maxUsers={maxUsers} />
+      ))}
+    </div>
+  );
+}
+
+function SchoolCard({ r, maxUsers }: { r: SchoolReportRow; maxUsers: number }) {
+  const users = num(r.drived_users);
+  const active = num(r.product_fruits_active_users);
+  const completion = num(r.lms_avg_completion_pct);
+  const done = num(r.total_lessons_completed);
+  const assigned = num(r.total_lessons_assigned);
+  const loggedIn = num(r.drived_logged);
+  const share = Math.round(((users ?? 0) / maxUsers) * 100);
+  const initial = r.school_name.trim().charAt(0).toUpperCase() || "?";
+
+  return (
+    <Link
+      href={`/schools/${r.school_id}`}
+      className="group block rounded-2xl border border-[var(--brand-border)] bg-[var(--surface)] p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-[var(--brand-gold)] hover:shadow-md"
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+          style={{ color: "var(--brand-gold)", backgroundColor: "color-mix(in srgb, var(--brand-gold) 14%, transparent)" }}
+          aria-hidden
+        >
+          {initial}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold group-hover:text-[var(--brand-gold)]">{r.school_name}</p>
+          <p className="text-[12px] text-[var(--on-surface-variant)]">
+            {loggedIn ? `${loggedIn.toLocaleString()} logged in` : "Drived tenant"}
+          </p>
+        </div>
+        <span className="text-[var(--on-surface-variant)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-gold)]" aria-hidden>
+          →
+        </span>
+      </div>
+
+      {/* Hero metric */}
+      <div className="mt-5">
+        <div className="flex items-baseline justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">Total users</span>
+          <span className="text-[26px] font-bold leading-none tracking-[-0.02em]">
+            {users === null ? "—" : users.toLocaleString()}
+          </span>
+        </div>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: "var(--brand-header-tint)" }}>
+          <div className="h-full rounded-full transition-all" style={{ width: `${share}%`, backgroundColor: "var(--brand-gold)" }} />
+        </div>
+      </div>
+
+      {/* Footer mini-stats */}
+      <div className="mt-5 grid grid-cols-3 gap-2 border-t border-[var(--brand-border)] pt-4">
+        <MiniStat label="Active" value={active === null ? "—" : active.toLocaleString()} muted={!active} />
+        <div className="text-center">
+          <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">Completion</p>
+          <div className="mt-1.5 flex justify-center">
+            {completion === null ? (
+              <span className="text-[15px] font-semibold text-[var(--on-surface-variant)] opacity-55">—</span>
+            ) : (
+              <StatusBadge value={completion} />
+            )}
+          </div>
+        </div>
+        <MiniStat
+          label="Lessons"
+          value={done === null && assigned === null ? "—" : `${(done ?? 0).toLocaleString()}/${(assigned ?? 0).toLocaleString()}`}
+          muted={!done && !assigned}
+        />
+      </div>
+    </Link>
+  );
+}
+
+function MiniStat({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
+  return (
+    <div className="text-center">
+      <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">{label}</p>
+      <p
+        className="mt-1.5 text-[15px] font-semibold tabular-nums"
+        style={muted ? { color: "var(--on-surface-variant)", opacity: 0.55 } : undefined}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+/* ---------------- Table view ---------------- */
+
+const TH =
+  "px-4 py-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)] whitespace-nowrap";
+const GROUP = "px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap";
+
+/** Numeric cell that de-emphasises zeros and blanks so real values stand out. */
+function Cell({ value }: { value: number | string | null | undefined }) {
+  const n = num(value);
+  const isQuiet = n === null || n === 0;
+  return (
+    <td
+      className="px-4 py-3 text-right text-[13px] tabular-nums whitespace-nowrap"
+      style={isQuiet ? { color: "var(--on-surface-variant)", opacity: 0.55 } : undefined}
+    >
+      {n === null ? "—" : n.toLocaleString()}
+    </td>
+  );
+}
+
+function DataTable({
+  rows,
+  maxUsers,
+  sortKey,
+  asc,
+  toggleSort,
+}: {
+  rows: SchoolReportRow[];
+  maxUsers: number;
+  sortKey: SortKey;
+  asc: boolean;
+  toggleSort: (k: SortKey) => void;
+}) {
+  function SortArrow({ k }: { k: SortKey }) {
+    const active = sortKey === k;
+    return <span style={{ color: active ? "var(--brand-gold)" : "transparent" }}>{active && asc ? "▲" : "▼"}</span>;
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr style={{ backgroundColor: "var(--brand-header-tint)" }}>
+              <th className="sticky left-0 z-20" style={{ backgroundColor: "var(--brand-header-tint)" }} />
+              <th className={`${GROUP} text-left`} colSpan={5} style={{ color: "var(--brand-gold)" }}>Drived</th>
+              <th className={`${GROUP} text-right`} colSpan={4} style={{ color: "var(--brand-gold)" }}>Product Fruits</th>
+              <th className={`${GROUP} text-right`} colSpan={3} style={{ color: "var(--brand-gold)" }}>LMS</th>
+            </tr>
+            <tr className="border-b border-[var(--brand-border)]" style={{ backgroundColor: "var(--brand-header-tint)" }}>
+              <th className={`sticky left-0 z-20 ${TH} text-left`} style={{ backgroundColor: "var(--brand-header-tint)", minWidth: "13rem" }}>
+                <button type="button" onClick={() => toggleSort("school_name")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
+                  School <SortArrow k="school_name" />
+                </button>
+              </th>
+              <th className={`${TH} text-right`}>
+                <button type="button" onClick={() => toggleSort("drived_users")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
+                  Users <SortArrow k="drived_users" />
+                </button>
+              </th>
+              <th className={`${TH} text-right`}>Invited</th>
+              <th className={`${TH} text-right`}>Accepted</th>
+              <th className={`${TH} text-right`}>Logged in</th>
+              <th className={`${TH} text-right`}>Studied</th>
+              <th className={`${TH} text-right`}>
+                <button type="button" onClick={() => toggleSort("product_fruits_active_users")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
+                  Active <SortArrow k="product_fruits_active_users" />
+                </button>
+              </th>
+              <th className={`${TH} text-right`}>Teachers</th>
+              <th className={`${TH} text-right`}>Admins</th>
+              <th className={`${TH} text-right`}>Last activity</th>
+              <th className={`${TH} text-right`}>Courses</th>
+              <th className={`${TH} text-right`}>Lessons</th>
+              <th className={`${TH} text-right`}>
+                <button type="button" onClick={() => toggleSort("lms_avg_completion_pct")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">
+                  Completion <SortArrow k="lms_avg_completion_pct" />
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[var(--brand-border)]">
+            {rows.map((r) => {
+              const users = num(r.drived_users);
+              const lessonsDone = num(r.total_lessons_completed);
+              const lessonsAssigned = num(r.total_lessons_assigned);
+              return (
+                <tr key={r.school_id} className="group transition-colors hover:bg-[var(--brand-bg)]">
+                  <td className="sticky left-0 z-10 whitespace-nowrap bg-[var(--surface)] px-4 py-3 group-hover:bg-[var(--brand-bg)]" style={{ minWidth: "13rem" }}>
+                    <Link href={`/schools/${r.school_id}`} className="text-[13px] font-semibold hover:underline" style={{ color: "var(--brand-gold)" }}>
+                      {r.school_name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-right align-middle">
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[13px] font-semibold tabular-nums">{users === null ? "—" : users.toLocaleString()}</span>
+                      <div className="h-1 w-16 overflow-hidden rounded-full" style={{ backgroundColor: "var(--brand-header-tint)" }}>
+                        <div className="h-full rounded-full" style={{ width: `${((users ?? 0) / maxUsers) * 100}%`, backgroundColor: "var(--brand-gold)" }} />
                       </div>
-                    </td>
-                    <Cell value={r.drived_invited} />
-                    <Cell value={r.drived_accepted} />
-                    <Cell value={r.drived_logged} />
-                    <Cell value={r.drived_studied} />
-                    <Cell value={r.product_fruits_active_users} />
-                    <Cell value={r.product_fruits_teachers} />
-                    <Cell value={r.product_fruits_admins} />
-                    <td className="px-4 py-3 text-right text-[13px] whitespace-nowrap" style={{ color: "var(--on-surface-variant)" }}>
-                      {fmtDate(r.product_fruits_last_activity)}
-                    </td>
-                    <Cell value={r.lms_course_rows} />
-                    <td className="px-4 py-3 text-right text-[13px] tabular-nums whitespace-nowrap">
-                      {lessonsDone === null && lessonsAssigned === null ? (
-                        <span style={{ color: "var(--on-surface-variant)", opacity: 0.55 }}>—</span>
-                      ) : (
-                        <>
-                          <span className={lessonsDone ? "" : "opacity-55"}>{(lessonsDone ?? 0).toLocaleString()}</span>
-                          <span style={{ color: "var(--on-surface-variant)" }}> / {(lessonsAssigned ?? 0).toLocaleString()}</span>
-                        </>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <StatusBadge value={num(r.lms_avg_completion_pct)} />
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={13} className="px-4 py-10 text-center text-sm text-[var(--on-surface-variant)]">
-                    No schools match “{query}”.
+                    </div>
+                  </td>
+                  <Cell value={r.drived_invited} />
+                  <Cell value={r.drived_accepted} />
+                  <Cell value={r.drived_logged} />
+                  <Cell value={r.drived_studied} />
+                  <Cell value={r.product_fruits_active_users} />
+                  <Cell value={r.product_fruits_teachers} />
+                  <Cell value={r.product_fruits_admins} />
+                  <td className="px-4 py-3 text-right text-[13px] whitespace-nowrap" style={{ color: "var(--on-surface-variant)" }}>
+                    {fmtDate(r.product_fruits_last_activity)}
+                  </td>
+                  <Cell value={r.lms_course_rows} />
+                  <td className="px-4 py-3 text-right text-[13px] tabular-nums whitespace-nowrap">
+                    {lessonsDone === null && lessonsAssigned === null ? (
+                      <span style={{ color: "var(--on-surface-variant)", opacity: 0.55 }}>—</span>
+                    ) : (
+                      <>
+                        <span className={lessonsDone ? "" : "opacity-55"}>{(lessonsDone ?? 0).toLocaleString()}</span>
+                        <span style={{ color: "var(--on-surface-variant)" }}> / {(lessonsAssigned ?? 0).toLocaleString()}</span>
+                      </>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <StatusBadge value={num(r.lms_avg_completion_pct)} />
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer */}
-        <div className="flex flex-col items-center justify-between gap-2 border-t border-[var(--brand-border)] bg-[var(--brand-bg)] px-4 py-3 text-[13px] text-[var(--on-surface-variant)] sm:flex-row">
-          <span>
-            Showing {filtered.length} of {rows.length} {rows.length === 1 ? "school" : "schools"}
-          </span>
-          <span>Data as of {fmtDate(latestSnapshot)}</span>
-        </div>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
