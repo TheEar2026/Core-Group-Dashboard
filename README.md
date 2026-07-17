@@ -8,7 +8,7 @@ The database schema is tracked in `supabase/migrations/`, exported from the live
 It covers four custom schemas:
 
 - `identity` — people, schools, teachers, admins, and role-based access
-- `staging` — raw loads from source systems (Drived, LMS, Vimeo, Product Fruits)
+- `staging` — raw loads from source systems (Drived, LMS, Product Fruits)
 - `fact` — cleaned/joined usage and engagement data
 - `reporting` — views combining the above for dashboard consumption
 

@@ -7,10 +7,9 @@ by the app, so generated UI can map straight onto them.
 ## 1. Product overview
 
 A web dashboard for **The Core Group** (an education organization) showing usage
-and engagement data for 12 partner schools, pulled from four systems:
+and engagement data for 12 partner schools, pulled from three systems:
 
 - **Drived** — daily tenant-level adoption counts (users invited/accepted/logged in/studied)
-- **Vimeo** — video engagement (views, watch %, finishes)
 - **Product Fruits** — login/activity tracking
 - **The Ear Academy LMS** — lesson and course completion
 
@@ -86,10 +85,6 @@ from `get_my_school_report()`:
 | `drived_logged` | Logged in |
 | `drived_studied` | Actively studied |
 | `drived_latest_snapshot_date` | Date of the Drived numbers above |
-| `vimeo_views` | Video views |
-| `vimeo_unique_viewers` | Unique viewers |
-| `vimeo_avg_pct_watched` | Avg % of video watched (apply color threshold) |
-| `vimeo_finishes` | Completed watch-throughs |
 | `product_fruits_active_users` | Active users this period |
 | `product_fruits_teachers` / `product_fruits_admins` | Breakdown by role |
 | `product_fruits_last_activity` | Last login timestamp anywhere in the school |
@@ -97,9 +92,9 @@ from `get_my_school_report()`:
 | `total_lessons_completed` / `total_lessons_assigned` | Lesson completion counts |
 | `lms_avg_completion_pct` | Avg lesson completion % (apply color threshold) |
 
-This is naturally a wide table (17 columns) — consider a card-based layout for
+This is naturally a wide table — consider a card-based layout for
 mobile/tablet and a dense table for desktop, or grouped column headers (Drived /
-Vimeo / Product Fruits / LMS) to make the width digestible. A Super Admin
+Product Fruits / LMS) to make the width digestible. A Super Admin
 viewing 12 rows should be able to scan and compare schools at a glance —
 sortable columns matter here.
 
@@ -108,8 +103,8 @@ sortable columns matter here.
 Drill-down from a row in 5.2. Time-series view of one school using
 `v_school_trend` (same metric families as above, but one row per
 `snapshot_date` instead of one row per school) — line/area charts per metric
-family (Drived adoption funnel over time, Vimeo watch % over time, lesson
-completion over time) rather than a table.
+family (Drived adoption funnel over time, lesson completion over time) rather
+than a table.
 
 ### 5.4 Teacher report — `/teachers` (future phase, design if time allows)
 
@@ -137,7 +132,7 @@ Two-panel layout:
 
 ### 5.6 Admin — sync/data-freshness status — `/admin` (future phase, Super Admin only)
 
-Not a data-entry screen — a status page. Shows, per source (Drived, Vimeo,
+Not a data-entry screen — a status page. Shows, per source (Drived,
 Product Fruits, LMS manual upload): last successful update timestamp, and a
 warning state if a source hasn't updated recently. Simple status-card row.
 

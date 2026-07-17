@@ -77,21 +77,22 @@ None of these are in the repo or this zip. Only the public anon key is.
 
 ## 6. The data model (read this first)
 
-Four sources, all joining on **two spines**: `school_id` (every source) and
+Three sources, all joining on **two spines**: `school_id` (every source) and
 `person_id` (the two person-level sources).
 
 | Source | Grain | → school via | → person via |
 |---|---|---|---|
 | **Drive Ed** | per-school/day | `schools.drived_core_id` | — |
-| **Vimeo** | per-school | `schools.vimeo_source_url` (domain) | — |
 | **Product Fruits** | per-person | `schools.product_fruits_school_name` | email |
-| **LMS** (scraped per school) | per-teacher/course | LMS `course_url` domain → `vimeo_source_url` | teacher name |
+| **LMS** (scraped per school) | per-teacher/course | LMS `course_url` domain → `schools.vimeo_source_url` | teacher name |
+
+> `schools.vimeo_source_url` is retained purely as the LMS↔school join key
+> (a school's course subdomain); Vimeo itself has been removed from the product.
 
 **Postgres schemas:** `identity` (people, schools, *_users, teaching_assignments,
 person_source_map, match_review_queue), `staging` (stg_* raw loads), `fact`
-(cleaned: school_usage_daily, school_video_engagement, product_fruits_activity,
-lms_completions), `reporting` (views: v_school_report, v_school_trend,
-v_teacher_report).
+(cleaned: school_usage_daily, product_fruits_activity, lms_completions),
+`reporting` (views: v_school_report, v_school_trend, v_teacher_report).
 
 - All 12 schools have their per-source keys populated → school joins work.
 - `identity.people.canonical_full_name` is a **GENERATED** column
@@ -101,7 +102,6 @@ v_teacher_report).
 ### Current data state (sparse — important)
 The pipeline/schema are correct but ingestion is early:
 - **Drive Ed**: real per-school `users` headcounts; funnel columns mostly 0.
-- **Vimeo**: rows exist per school but all engagement metrics are 0.
 - **LMS**: course catalog + lesson totals present; completions 0; teacher names
   scraped **only for Sky City** so far.
 - **Product Fruits**: 3 activity rows.
@@ -159,19 +159,21 @@ They are ordered by timestamp filename.
 - Collapsible menu + dark mode
 - Super-admin management (create schools/teachers, assign school + course)
 - Identity match-review tool (LMS names → people, backfills completions)
-- **Settings → Data uploads**: per-source cards (Drive Ed, Vimeo, Product
-  Fruits, LMS) that accept CSV *or* Excel (.xlsx), preview + column-match,
-  then load idempotently by snapshot date. Super-admin only.
+- **Settings → Data uploads**: per-source cards (Drive Ed, Product Fruits, LMS)
+  that accept CSV *or* Excel (.xlsx), preview + column-match, then load
+  idempotently by snapshot date. Super-admin only.
 - **School-admin scope**: school admins now get read-only oversight of all 12
   schools/teachers via `identity.is_school_admin()` in the report RPCs
   (migration `..100000`). Writes stay super-admin-only; Manage/Settings redirect
-  them to the dashboard.
+  them to Analytics.
+- **Analytics** is the post-login landing page; **School Report** (`/dashboard`)
+  is the wide per-school table.
 - Deployed on Vercel with Git auto-deploy
 
 **Remaining / next**
-- **Validate Product Fruits & LMS upload parsers** against real export files
-  (Drive Ed + Vimeo are confirmed). If a required column shows "— not found",
-  adjust the alias lists in `src/app/settings/mappings.ts`.
+- **Validate the LMS upload parser** against a real export file (Drive Ed +
+  Product Fruits are confirmed against real files). If a required column shows
+  "— not found", adjust the alias lists in `src/app/settings/mappings.ts`.
 - **Resolve the 18 pending LMS matches** (one click: "Create all pending").
 - **Run the Product Fruits school backfill** (button on Match Review).
 - **Data ingestion**: the `staging → fact` population + the per-school LMS
