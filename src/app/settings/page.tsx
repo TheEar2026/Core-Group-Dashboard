@@ -23,7 +23,9 @@ export default async function SettingsPage() {
         <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
           Upload each source&apos;s daily export as CSV or Excel (.xlsx). Each file is previewed and
           column-matched before loading, then the dashboard refreshes. Re-uploading the same
-          day&apos;s file replaces that day&apos;s data.
+          day&apos;s file replaces that day&apos;s data. Exports can list every school in the
+          company &mdash; only rows for your 12 Core Group schools are loaded, and the result
+          tells you how many were skipped.
         </p>
       </header>
 
