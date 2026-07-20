@@ -56,6 +56,12 @@ export default async function ManagePage() {
             Teacher logins →
           </Link>
           <Link
+            href="/manage/school-admins"
+            className="inline-block rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]"
+          >
+            School-admin logins →
+          </Link>
+          <Link
             href="/manage/matches"
             className="inline-block rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]"
           >

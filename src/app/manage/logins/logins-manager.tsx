@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useState, useTransition } from "react";
 import { createTeacherLoginAction, type ActionState } from "../courses/actions";
+import { bulkCreateTeacherLoginsAction, type BulkResult } from "./admin-actions";
 
 export type TeacherLoginRow = {
   person_id: number;
@@ -20,11 +21,107 @@ const BTN =
 export function LoginsManager({ teachers }: { teachers: TeacherLoginRow[] }) {
   const [state, action, pending] = useActionState(createTeacherLoginAction, undefined);
   const withoutLogin = useMemo(() => teachers.filter((t) => !t.has_login), [teachers]);
+  const withEmail = useMemo(() => withoutLogin.filter((t) => t.primary_email), [withoutLogin]);
   const [selected, setSelected] = useState<string>("");
+  const [bulk, setBulk] = useState<BulkResult>(undefined);
+  const [bulkPending, startBulk] = useTransition();
 
   const selectedTeacher = teachers.find((t) => String(t.person_id) === selected);
 
+  function runBulk() {
+    setBulk(undefined);
+    startBulk(async () => setBulk(await bulkCreateTeacherLoginsAction()));
+  }
+
+  function downloadCsv() {
+    if (!bulk?.created?.length) return;
+    const rows = [["Teacher", "Email", "Temporary password"], ...bulk.created.map((r) => [r.name, r.email, r.password])];
+    const csv = rows.map((r) => r.map((c) => (/[",\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c)).join(",")).join("\r\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "teacher-logins.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
+    <div className="flex flex-col gap-6">
+      {/* Bulk create */}
+      <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold">Bulk create</h2>
+            <p className="mt-0.5 text-[13px] text-[var(--on-surface-variant)]">
+              Create logins for all {withEmail.length} teacher{withEmail.length === 1 ? "" : "s"} without one, with
+              auto-generated temporary passwords. Download the list to hand out.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={runBulk}
+            disabled={bulkPending || withEmail.length === 0}
+            className="rounded-lg bg-[var(--brand-gold)] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[var(--brand-gold-hover)] active:scale-[0.98] disabled:opacity-60"
+          >
+            {bulkPending ? "Creating…" : `Create ${withEmail.length} login${withEmail.length === 1 ? "" : "s"}`}
+          </button>
+        </div>
+
+        {bulk && (
+          <div className="mt-4 space-y-3">
+            <p
+              className="rounded-lg px-3 py-2 text-sm"
+              style={{
+                color: bulk.ok ? "var(--status-success)" : "var(--status-danger)",
+                backgroundColor: `color-mix(in srgb, ${bulk.ok ? "var(--status-success)" : "var(--status-danger)"} 10%, transparent)`,
+              }}
+            >
+              {bulk.message}
+            </p>
+            {bulk.created.length > 0 && (
+              <>
+                <div className="flex items-center justify-between">
+                  <p className="text-[13px] font-semibold">
+                    {bulk.created.length} login{bulk.created.length === 1 ? "" : "s"} created — copy these now, passwords aren&apos;t shown again.
+                  </p>
+                  <button type="button" onClick={downloadCsv} className="rounded-lg border border-[var(--brand-border)] px-3 py-1.5 text-[13px] font-medium hover:bg-[var(--brand-bg)]">
+                    Download CSV
+                  </button>
+                </div>
+                <div className="overflow-hidden rounded-lg border border-[var(--brand-border)]">
+                  <table className="w-full border-collapse text-left text-[13px]">
+                    <thead>
+                      <tr style={{ backgroundColor: "var(--brand-header-tint)" }}>
+                        <th className="px-3 py-2 font-semibold">Teacher</th>
+                        <th className="px-3 py-2 font-semibold">Email</th>
+                        <th className="px-3 py-2 font-semibold">Temp password</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--brand-border)]">
+                      {bulk.created.map((r, i) => (
+                        <tr key={i}>
+                          <td className="px-3 py-2">{r.name}</td>
+                          <td className="px-3 py-2">{r.email}</td>
+                          <td className="px-3 py-2 font-mono">{r.password}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+            {bulk.skipped.length > 0 && (
+              <p className="text-[13px] text-[var(--on-surface-variant)]">
+                Skipped: {bulk.skipped.map((s) => `${s.name} (${s.reason})`).join("; ")}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Create login */}
       <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6 lg:col-span-1">
@@ -118,6 +215,7 @@ export function LoginsManager({ teachers }: { teachers: TeacherLoginRow[] }) {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
