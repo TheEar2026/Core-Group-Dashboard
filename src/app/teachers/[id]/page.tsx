@@ -6,9 +6,7 @@ import { ProgressBar, StatusBadge } from "@/components/brand";
 import type { TeacherRow } from "../teacher-table";
 
 type LoginEvent = {
-  event_datetime: string;
-  user_role: string | null;
-  product_type: string | null;
+  logged_in_at: string;
 };
 
 type CourseProgress = {
@@ -94,7 +92,7 @@ export default async function TeacherDetailPage({
     await Promise.all([
       supabase.rpc("get_my_role"),
       supabase.rpc("get_my_teacher_report"),
-      supabase.rpc("get_teacher_login_activity", { target_person_id: personId }),
+      supabase.rpc("get_teacher_login_history", { target_person_id: personId }),
       supabase.rpc("get_person_catalog_progress", { target_person_id: personId }),
       supabase.rpc("get_teacher_assignments", { target_person_id: personId }),
     ]);
@@ -122,12 +120,6 @@ export default async function TeacherDetailPage({
     if (bucket) bucket.courses.push(course);
     else assignmentsByGrade.push({ grade, courses: [course] });
   }
-
-  const now = new Date();
-  const loginsThisMonth = loginEvents.filter((e) => {
-    const d = new Date(e.event_datetime);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length;
 
   return (
     <AppShell email={user?.email} role={role}>
@@ -164,16 +156,16 @@ export default async function TeacherDetailPage({
           </div>
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
-              Logins this month
+              Total logins
             </p>
-            <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{loginsThisMonth}</p>
+            <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{fmt(profile.login_count)}</p>
           </div>
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
-              Last active
+              Last login
             </p>
             <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">
-              {fmtRelative(profile.last_product_fruits_activity)}
+              {fmtRelative(profile.last_login_at)}
             </p>
           </div>
         </div>
@@ -247,7 +239,7 @@ export default async function TeacherDetailPage({
                         aria-hidden
                       />
                     )}
-                    <span className="text-sm">{fmtDateTime(e.event_datetime)}</span>
+                    <span className="text-sm">{fmtDateTime(e.logged_in_at)}</span>
                   </li>
                 ))}
               </ol>

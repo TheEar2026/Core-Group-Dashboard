@@ -12,10 +12,19 @@ type MyCourse = {
   completion_pct: number | string | null;
 };
 
+type LoginStats = { login_count: number | string | null; last_login_at: string | null };
+
 function num(v: number | string | null | undefined): number {
   if (v === null || v === undefined || v === "") return 0;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isNaN(n) ? 0 : n;
+}
+
+function fmtDateTime(v: string | null): string {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "—";
+  return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 export default async function MyCoursesPage() {
@@ -31,8 +40,12 @@ export default async function MyCoursesPage() {
     redirect("/analytics");
   }
 
-  const { data, error } = await supabase.rpc("get_my_courses");
+  const [{ data, error }, loginStatsRes] = await Promise.all([
+    supabase.rpc("get_my_courses"),
+    supabase.rpc("get_my_login_stats"),
+  ]);
   const courses = (data ?? []) as MyCourse[];
+  const loginStats = (loginStatsRes.data?.[0] ?? null) as LoginStats | null;
 
   return (
     <AppShell email={user?.email} role={role}>
@@ -42,6 +55,22 @@ export default async function MyCoursesPage() {
           Tick off each lesson as you complete it. Your progress updates automatically.
         </p>
       </header>
+
+      {/* My activity */}
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:max-w-md">
+        <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-5 shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">Total logins</p>
+          <p className="mt-2 text-[28px] font-bold leading-none tracking-[-0.02em]">
+            {num(loginStats?.login_count).toLocaleString()}
+          </p>
+        </div>
+        <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-5 shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">Last login</p>
+          <p className="mt-2 text-[15px] font-bold leading-tight tracking-[-0.01em]">
+            {fmtDateTime(loginStats?.last_login_at ?? null)}
+          </p>
+        </div>
+      </div>
 
       {error && (
         <div

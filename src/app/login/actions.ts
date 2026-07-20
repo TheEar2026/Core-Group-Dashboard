@@ -26,6 +26,8 @@ export async function login(
     return { error: error.message };
   }
 
+  await supabase.rpc("record_login");
+
   redirect("/analytics");
 }
 

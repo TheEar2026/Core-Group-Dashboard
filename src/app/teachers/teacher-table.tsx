@@ -12,6 +12,8 @@ export type TeacherRow = {
   total_lessons_completed: number | string | null;
   total_lessons_assigned: number | string | null;
   avg_completion_pct: number | string | null;
+  login_count: number | string | null;
+  last_login_at: string | null;
   last_product_fruits_activity: string | null;
 };
 
@@ -19,7 +21,8 @@ type SortKey =
   | "teacher_name"
   | "course_rows"
   | "avg_completion_pct"
-  | "last_product_fruits_activity";
+  | "login_count"
+  | "last_login_at";
 
 function num(v: number | string | null | undefined): number | null {
   if (v === null || v === undefined || v === "") return null;
@@ -65,9 +68,9 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
       if (sortKey === "teacher_name") {
         av = (a.teacher_name ?? "").toLowerCase();
         bv = (b.teacher_name ?? "").toLowerCase();
-      } else if (sortKey === "last_product_fruits_activity") {
-        av = a.last_product_fruits_activity ?? "";
-        bv = b.last_product_fruits_activity ?? "";
+      } else if (sortKey === "last_login_at") {
+        av = a.last_login_at ?? "";
+        bv = b.last_login_at ?? "";
       } else {
         av = num(a[sortKey]) ?? -1;
         bv = num(b[sortKey]) ?? -1;
@@ -136,7 +139,8 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
               <SortHeader label="Courses" keyName="course_rows" />
               <th className={TH}>Lessons</th>
               <SortHeader label="Completion" keyName="avg_completion_pct" />
-              <SortHeader label="Last activity" keyName="last_product_fruits_activity" />
+              <SortHeader label="Logins" keyName="login_count" />
+              <SortHeader label="Last login" keyName="last_login_at" />
               <th className={`${TH} w-8`} />
             </tr>
           </thead>
@@ -159,15 +163,16 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
                 <td className={TD}>
                   <StatusBadge value={num(r.avg_completion_pct)} />
                 </td>
+                <td className={TD}>{fmt(r.login_count)}</td>
                 <td className={`${TD} text-[var(--on-surface-variant)]`}>
-                  {fmtDate(r.last_product_fruits_activity)}
+                  {fmtDate(r.last_login_at)}
                 </td>
                 <td className={`${TD} text-[var(--on-surface-variant)]`}>›</td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
+                <td colSpan={8} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
                   {query ? "No teachers match your search." : "No teachers to show."}
                 </td>
               </tr>
