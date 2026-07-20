@@ -19,7 +19,12 @@ const STAFF_NAV: NavItem[] = [
 
 // Teachers only ever see their own courses.
 const TEACHER_NAV: NavItem[] = [
-  { href: "/my-courses", label: "My Courses", match: (p) => p.startsWith("/my-courses") },
+  {
+    href: "/my-courses",
+    label: "My Courses",
+    match: (p) => p.startsWith("/my-courses") && !p.startsWith("/my-courses/progress"),
+  },
+  { href: "/my-courses/progress", label: "Lesson Progress", match: (p) => p.startsWith("/my-courses/progress") },
 ];
 
 function iconProps(size = 20) {

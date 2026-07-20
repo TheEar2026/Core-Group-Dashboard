@@ -19,5 +19,6 @@ export async function toggleLesson(
 
   revalidatePath("/my-courses");
   revalidatePath(`/my-courses/${courseId}`);
+  revalidatePath("/my-courses/progress");
   return { ok: true };
 }
