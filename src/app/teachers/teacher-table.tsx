@@ -8,6 +8,7 @@ export type TeacherRow = {
   person_id: number;
   teacher_name: string | null;
   primary_email: string | null;
+  grades: string | null;
   course_rows: number | string | null;
   total_lessons_completed: number | string | null;
   total_lessons_assigned: number | string | null;
@@ -21,7 +22,6 @@ type SortKey =
   | "teacher_name"
   | "course_rows"
   | "avg_completion_pct"
-  | "login_count"
   | "last_login_at";
 
 function num(v: number | string | null | undefined): number | null {
@@ -136,10 +136,10 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
             <tr className="border-b border-[var(--brand-border)]" style={{ backgroundColor: "var(--brand-header-tint)" }}>
               <SortHeader label="Teacher" keyName="teacher_name" />
               <th className={TH}>Email</th>
+              <th className={TH}>Grade</th>
               <SortHeader label="Courses" keyName="course_rows" />
               <th className={TH}>Lessons</th>
               <SortHeader label="Completion" keyName="avg_completion_pct" />
-              <SortHeader label="Logins" keyName="login_count" />
               <SortHeader label="Last login" keyName="last_login_at" />
               <th className={`${TH} w-8`} />
             </tr>
@@ -155,6 +155,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
                   {r.teacher_name ?? "—"}
                 </td>
                 <td className={`${TD} text-[var(--on-surface-variant)]`}>{r.primary_email ?? "—"}</td>
+                <td className={`${TD} text-[var(--on-surface-variant)]`}>{r.grades ?? "—"}</td>
                 <td className={TD}>{fmt(r.course_rows)}</td>
                 <td className={TD}>
                   {fmt(r.total_lessons_completed)}
@@ -163,7 +164,6 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
                 <td className={TD}>
                   <StatusBadge value={num(r.avg_completion_pct)} />
                 </td>
-                <td className={TD}>{fmt(r.login_count)}</td>
                 <td className={`${TD} text-[var(--on-surface-variant)]`}>
                   {fmtDate(r.last_login_at)}
                 </td>
