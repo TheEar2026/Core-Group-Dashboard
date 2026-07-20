@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { ProgressBar, StatusBadge } from "@/components/brand";
-import { encodeCourseKey } from "@/lib/course-key";
 import type { TeacherRow } from "../teacher-table";
 
 type LoginEvent = {
@@ -12,13 +11,13 @@ type LoginEvent = {
   product_type: string | null;
 };
 
-type LessonRow = {
-  course_title: string | null;
-  course_url: string | null;
+type CourseProgress = {
+  course_id: number;
+  grade: string | null;
+  title: string | null;
   lessons_completed: number | string | null;
   lessons_total: number | string | null;
   completion_pct: number | string | null;
-  snapshot_date: string | null;
 };
 
 type AssignmentRow = {
@@ -96,7 +95,7 @@ export default async function TeacherDetailPage({
       supabase.rpc("get_my_role"),
       supabase.rpc("get_my_teacher_report"),
       supabase.rpc("get_teacher_login_activity", { target_person_id: personId }),
-      supabase.rpc("get_teacher_lesson_progress", { target_person_id: personId }),
+      supabase.rpc("get_person_catalog_progress", { target_person_id: personId }),
       supabase.rpc("get_teacher_assignments", { target_person_id: personId }),
     ]);
   const role = roleRes.data as string | null;
@@ -111,7 +110,7 @@ export default async function TeacherDetailPage({
   }
 
   const loginEvents = (loginActivityRes.data ?? []) as LoginEvent[];
-  const lessons = (lessonProgressRes.data ?? []) as LessonRow[];
+  const courseProgress = (lessonProgressRes.data ?? []) as CourseProgress[];
   const assignments = (assignmentsRes.data ?? []) as AssignmentRow[];
 
   // Group assigned courses by grade, preserving the RPC's Grade R -> 7 order.
@@ -255,35 +254,25 @@ export default async function TeacherDetailPage({
             )}
           </div>
 
-          {/* Lesson progress */}
+          {/* Lesson progress (teacher's own ticks) */}
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <h2 className="mb-4 text-base font-semibold">Lesson progress</h2>
-            {lessons.length === 0 ? (
-              <p className="text-sm text-[var(--on-surface-variant)]">No lesson data recorded.</p>
+            {courseProgress.length === 0 ? (
+              <p className="text-sm text-[var(--on-surface-variant)]">No courses assigned yet.</p>
             ) : (
               <div className="space-y-4">
-                {lessons.map((l) => (
-                  <div
-                    key={l.course_url ?? l.course_title}
-                    className="rounded-lg border border-[var(--brand-border)] p-4"
-                  >
+                {courseProgress.map((c) => (
+                  <div key={c.course_id} className="rounded-lg border border-[var(--brand-border)] p-4">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      {l.course_url ? (
-                        <Link
-                          href={`/courses/${encodeCourseKey(l.course_url)}`}
-                          className="text-sm font-semibold hover:underline"
-                          style={{ color: "var(--brand-gold)" }}
-                        >
-                          {l.course_title ?? "Untitled course"}
-                        </Link>
-                      ) : (
-                        <span className="text-sm font-semibold">{l.course_title ?? "Untitled course"}</span>
-                      )}
-                      <StatusBadge value={num(l.completion_pct)} />
+                      <span className="text-sm font-semibold">
+                        {c.grade && <span className="text-[var(--on-surface-variant)]">{c.grade} · </span>}
+                        {c.title ?? "Untitled course"}
+                      </span>
+                      <StatusBadge value={num(c.completion_pct)} />
                     </div>
-                    <ProgressBar value={num(l.completion_pct)} />
+                    <ProgressBar value={num(c.completion_pct)} />
                     <p className="mt-1 text-xs text-[var(--on-surface-variant)]">
-                      {fmt(l.lessons_completed)} of {fmt(l.lessons_total)} lessons completed
+                      {fmt(c.lessons_completed)} of {fmt(c.lessons_total)} lessons ticked
                     </p>
                   </div>
                 ))}

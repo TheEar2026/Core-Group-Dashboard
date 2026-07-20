@@ -32,12 +32,12 @@ export default async function SettingsPage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <UploadCard config={SOURCES.drived} />
         <UploadCard config={SOURCES.product_fruits} />
-        <UploadCard config={SOURCES.lms} />
       </div>
 
       <p className="mt-6 text-[13px] text-[var(--on-surface-variant)]">
-        Product Fruits and LMS also resolve people/schools via Match Review — unmatched teacher
-        names from an LMS upload are queued there automatically.
+        Product Fruits also resolves people/schools via Match Review. Lesson and course progress is
+        no longer uploaded — teachers tick their own lessons off on My Courses, and that drives the
+        completion figures across the app.
       </p>
     </AppShell>
   );

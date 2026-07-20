@@ -2,7 +2,7 @@
 // normalized (lowercased, non-alphanumerics stripped) and matched against the
 // alias lists below, so small header variations still map to the right field.
 
-export type SourceKey = "drived" | "product_fruits" | "lms";
+export type SourceKey = "drived" | "product_fruits";
 
 export type SourceConfig = {
   key: SourceKey;
@@ -48,19 +48,6 @@ export const SOURCES: Record<SourceKey, SourceConfig> = {
       billing_status: ["billingstatus", "billing", "status"],
     },
     required: ["email"],
-  },
-  lms: {
-    key: "lms",
-    label: "Lesson Progress (LMS)",
-    description: "Scraped per-school lesson/course progress (CSV).",
-    fields: {
-      teacher_name: ["teachername", "teacher", "name"],
-      course_name: ["coursename", "course", "title"],
-      course_url: ["courseurl", "url", "link"],
-      course_image: ["courseimage", "image", "thumbnail"],
-      lessons_completed_raw: ["lessonscompleted", "lessons", "progress", "completed", "completion"],
-    },
-    required: ["teacher_name", "lessons_completed_raw"],
   },
 };
 
