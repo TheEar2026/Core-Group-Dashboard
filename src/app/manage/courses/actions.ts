@@ -18,15 +18,28 @@ export async function createCourseAction(_prev: ActionState, form: FormData): Pr
   return { ok: true, message: `Created “${title}”.` };
 }
 
+export async function createModuleAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const courseId = Number(form.get("courseId"));
+  const title = String(form.get("title") ?? "").trim();
+  if (!title) return { ok: false, message: "Module title is required." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_add_module", { p_course_id: courseId, p_title: title });
+  if (error) return { ok: false, message: error.message };
+  revalidatePath(`/manage/courses/${courseId}`);
+  return { ok: true, message: `Created “${title}”.` };
+}
+
 export async function addLessonAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const moduleId = Number(form.get("moduleId"));
   const courseId = Number(form.get("courseId"));
   const title = String(form.get("title") ?? "").trim();
   if (!title) return { ok: false, message: "Lesson title is required." };
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("admin_add_lesson", { p_course_id: courseId, p_title: title });
+  const { error } = await supabase.rpc("admin_add_lesson", { p_module_id: moduleId, p_title: title });
   if (error) return { ok: false, message: error.message };
-  revalidatePath(`/manage/courses/${courseId}`);
+  revalidatePath(`/manage/courses/${courseId}/modules/${moduleId}`);
   return { ok: true, message: `Added “${title}”.` };
 }
 

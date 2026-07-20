@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
-import { CourseDetail, type Lesson, type Teacher } from "./course-detail";
+import { CourseDetail, type ModuleRow, type Teacher } from "./course-detail";
 import type { CourseRow } from "../courses-manager";
 
 export default async function ManageCourseDetailPage({
@@ -21,9 +21,9 @@ export default async function ManageCourseDetailPage({
   const { data: role } = await supabase.rpc("get_my_role");
   if (role !== "super_admin") redirect("/analytics");
 
-  const [coursesRes, lessonsRes, assignedRes, allTeachersRes] = await Promise.all([
+  const [coursesRes, modulesRes, assignedRes, allTeachersRes] = await Promise.all([
     supabase.rpc("admin_list_courses"),
-    supabase.rpc("get_course_lessons", { p_course_id: id }),
+    supabase.rpc("admin_list_modules", { p_course_id: id }),
     supabase.rpc("admin_list_course_teachers", { p_course_id: id }),
     supabase.rpc("admin_list_teachers"),
   ]);
@@ -31,7 +31,7 @@ export default async function ManageCourseDetailPage({
   const course = ((coursesRes.data ?? []) as CourseRow[]).find((c) => c.course_id === id);
   if (!course) notFound();
 
-  const lessons = (lessonsRes.data ?? []) as Lesson[];
+  const modules = (modulesRes.data ?? []) as ModuleRow[];
   const assigned = (assignedRes.data ?? []) as Teacher[];
   const allTeachers = ((allTeachersRes.data ?? []) as { id: number; teacher_name: string | null; school_name: string | null }[]).map(
     (t) => ({ person_id: t.id, teacher_name: t.teacher_name, primary_email: null, school_name: t.school_name }),
@@ -51,7 +51,7 @@ export default async function ManageCourseDetailPage({
         <h1 className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{course.title}</h1>
       </header>
 
-      <CourseDetail courseId={id} lessons={lessons} assigned={assigned} allTeachers={allTeachers} />
+      <CourseDetail courseId={id} modules={modules} assigned={assigned} allTeachers={allTeachers} />
     </AppShell>
   );
 }

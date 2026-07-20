@@ -9,6 +9,7 @@ export type CourseRow = {
   grade: string | null;
   title: string;
   is_active: boolean;
+  module_count: number | string | null;
   lessons_total: number | string | null;
   assigned_teachers: number | string | null;
 };
@@ -88,7 +89,7 @@ export function CoursesManager({ courses }: { courses: CourseRow[] }) {
                   <span className="text-[var(--on-surface-variant)] group-hover:text-[var(--brand-gold)]" aria-hidden>→</span>
                 </div>
                 <p className="mt-3 text-[13px] text-[var(--on-surface-variant)]">
-                  {num(c.lessons_total)} lesson{num(c.lessons_total) === 1 ? "" : "s"} · {num(c.assigned_teachers)} teacher{num(c.assigned_teachers) === 1 ? "" : "s"}
+                  {num(c.module_count)} module{num(c.module_count) === 1 ? "" : "s"} · {num(c.lessons_total)} lesson{num(c.lessons_total) === 1 ? "" : "s"} · {num(c.assigned_teachers)} teacher{num(c.assigned_teachers) === 1 ? "" : "s"}
                 </p>
               </Link>
             ))}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
-import { LessonChecklist, type Lesson } from "./lesson-checklist";
+import { LessonChecklist, type LessonRow } from "./lesson-checklist";
 
 type MyCourse = {
   course_id: number;
@@ -36,7 +36,7 @@ export default async function CourseLessonsPage({
   const course = ((coursesRes.data ?? []) as MyCourse[]).find((c) => c.course_id === id);
   if (!course) notFound();
 
-  const lessons = (lessonsRes.data ?? []) as Lesson[];
+  const rows = (lessonsRes.data ?? []) as LessonRow[];
 
   return (
     <AppShell email={user?.email} role={role}>
@@ -56,12 +56,12 @@ export default async function CourseLessonsPage({
         <h1 className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{course.title}</h1>
       </header>
 
-      {lessons.length === 0 ? (
+      {rows.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--surface)] p-12 text-center text-sm text-[var(--on-surface-variant)]">
           No lessons have been added to this course yet.
         </div>
       ) : (
-        <LessonChecklist courseId={id} lessons={lessons} />
+        <LessonChecklist courseId={id} rows={rows} />
       )}
     </AppShell>
   );

@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { addLessonAction, assignTeacherAction, unassignTeacherAction, type ActionState } from "../actions";
+import Link from "next/link";
+import { createModuleAction, assignTeacherAction, unassignTeacherAction, type ActionState } from "../actions";
 
-export type Lesson = { lesson_id: number; title: string; sort_order: number; completed: boolean };
+export type ModuleRow = { module_id: number; title: string; sort_order: number; lessons_total: number | string | null };
 export type Teacher = { person_id: number; teacher_name: string | null; primary_email: string | null; school_name: string | null };
 
 const INPUT =
@@ -12,6 +13,11 @@ const LABEL = "block text-[11px] font-bold uppercase tracking-[0.08em] text-[var
 const BTN =
   "rounded-lg bg-[var(--brand-gold)] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[var(--brand-gold-hover)] active:scale-[0.98] disabled:opacity-60";
 const CARD = "rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6";
+
+function num(v: number | string | null | undefined): number {
+  const n = typeof v === "number" ? v : Number(v ?? 0);
+  return Number.isNaN(n) ? 0 : n;
+}
 
 function Feedback({ state }: { state: ActionState }) {
   if (!state) return null;
@@ -25,16 +31,16 @@ function Feedback({ state }: { state: ActionState }) {
 
 export function CourseDetail({
   courseId,
-  lessons,
+  modules,
   assigned,
   allTeachers,
 }: {
   courseId: number;
-  lessons: Lesson[];
+  modules: ModuleRow[];
   assigned: Teacher[];
   allTeachers: Teacher[];
 }) {
-  const [lessonState, lessonAction, lessonPending] = useActionState(addLessonAction, undefined);
+  const [moduleState, moduleAction, modulePending] = useActionState(createModuleAction, undefined);
   const [assignState, assignFn, assignPending] = useActionState(assignTeacherAction, undefined);
   const [, startTransition] = useTransition();
   const [removeMsg, setRemoveMsg] = useState<string | null>(null);
@@ -52,30 +58,39 @@ export function CourseDetail({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      {/* Lessons */}
+      {/* Modules */}
       <div className={CARD}>
-        <h2 className="mb-4 text-base font-semibold">Lessons ({lessons.length})</h2>
-        {lessons.length === 0 ? (
-          <p className="mb-4 text-sm text-[var(--on-surface-variant)]">No lessons yet. Add them in order below.</p>
+        <h2 className="mb-4 text-base font-semibold">Modules ({modules.length})</h2>
+        {modules.length === 0 ? (
+          <p className="mb-4 text-sm text-[var(--on-surface-variant)]">No modules yet. Add the first one below.</p>
         ) : (
-          <ol className="mb-4 divide-y divide-[var(--brand-border)] overflow-hidden rounded-lg border border-[var(--brand-border)]">
-            {lessons.map((l, i) => (
-              <li key={l.lesson_id} className="flex items-center gap-3 px-3 py-2.5 text-sm">
-                <span className="w-5 text-right text-[var(--on-surface-variant)] tabular-nums">{i + 1}</span>
-                <span>{l.title}</span>
+          <ul className="mb-4 divide-y divide-[var(--brand-border)] overflow-hidden rounded-lg border border-[var(--brand-border)]">
+            {modules.map((m, i) => (
+              <li key={m.module_id}>
+                <Link
+                  href={`/manage/courses/${courseId}/modules/${m.module_id}`}
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-[var(--brand-bg)]"
+                >
+                  <span className="w-5 text-right text-[var(--on-surface-variant)] tabular-nums">{i + 1}</span>
+                  <span className="flex-1 font-medium">{m.title}</span>
+                  <span className="text-[12px] text-[var(--on-surface-variant)]">
+                    {num(m.lessons_total)} lesson{num(m.lessons_total) === 1 ? "" : "s"}
+                  </span>
+                  <span className="text-[var(--on-surface-variant)]" aria-hidden>›</span>
+                </Link>
               </li>
             ))}
-          </ol>
+          </ul>
         )}
-        <form action={lessonAction} className="flex items-end gap-2">
+        <form action={moduleAction} className="flex items-end gap-2">
           <input type="hidden" name="courseId" value={courseId} />
           <div className="flex-1">
-            <label className={LABEL} htmlFor="lessonTitle">Add a lesson</label>
-            <input id="lessonTitle" name="title" className={INPUT} placeholder="Lesson title" required />
+            <label className={LABEL} htmlFor="moduleTitle">Add a module</label>
+            <input id="moduleTitle" name="title" className={INPUT} placeholder="Module title" required />
           </div>
-          <button type="submit" className={BTN} disabled={lessonPending}>{lessonPending ? "Adding…" : "Add"}</button>
+          <button type="submit" className={BTN} disabled={modulePending}>{modulePending ? "Adding…" : "Add"}</button>
         </form>
-        <Feedback state={lessonState} />
+        <Feedback state={moduleState} />
       </div>
 
       {/* Teachers */}
