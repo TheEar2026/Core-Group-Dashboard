@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { AnalyticsCharts } from "./analytics-charts";
+import { AttentionPanel, type AttentionTeacher } from "./attention-panel";
 import type { SchoolReportRow } from "@/app/dashboard/page";
 
 export default async function AnalyticsPage() {
@@ -13,8 +14,14 @@ export default async function AnalyticsPage() {
 
   const { data: role } = await supabase.rpc("get_my_role");
   if (role === "teacher") redirect("/my-courses");
-  const { data, error } = await supabase.rpc("get_my_school_report");
+
+  const [schoolRes, teacherRes] = await Promise.all([
+    supabase.rpc("get_my_school_report"),
+    supabase.rpc("get_my_teacher_report"),
+  ]);
+  const { data, error } = schoolRes;
   const rows = (data ?? []) as SchoolReportRow[];
+  const teachers = (teacherRes.data ?? []) as AttentionTeacher[];
 
   return (
     <AppShell email={user?.email} role={role}>
@@ -44,7 +51,12 @@ export default async function AnalyticsPage() {
         <p className="text-sm text-[var(--on-surface-variant)]">No data available for this account yet.</p>
       )}
 
-      {rows.length > 0 && <AnalyticsCharts rows={rows} />}
+      {rows.length > 0 && (
+        <div className="flex flex-col gap-6">
+          <AttentionPanel schools={rows} teachers={teachers} canManage={role === "super_admin"} />
+          <AnalyticsCharts rows={rows} />
+        </div>
+      )}
     </AppShell>
   );
 }
