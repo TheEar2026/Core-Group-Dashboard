@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { LoginsManager, type TeacherLoginRow } from "./logins-manager";
+import { PasswordResetCard, type ResetAccount } from "./password-reset-card";
+
+type SchoolAdminRow = { email: string | null; school_name: string | null };
 
 export default async function ManageLoginsPage() {
   const supabase = await createClient();
@@ -12,9 +15,30 @@ export default async function ManageLoginsPage() {
   const { data: role } = await supabase.rpc("get_my_role");
   if (role !== "super_admin") redirect("/analytics");
 
-  const { data } = await supabase.rpc("admin_list_teacher_logins");
-  const teachers = (data ?? []) as TeacherLoginRow[];
+  const [teacherRes, schoolAdminRes] = await Promise.all([
+    supabase.rpc("admin_list_teacher_logins"),
+    supabase.rpc("admin_list_school_admins"),
+  ]);
+  const teachers = (teacherRes.data ?? []) as TeacherLoginRow[];
+  const schoolAdmins = (schoolAdminRes.data ?? []) as SchoolAdminRow[];
   const serviceKeyConfigured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  const resetAccounts: ResetAccount[] = [
+    ...teachers
+      .filter((t) => t.has_login && t.primary_email)
+      .map((t) => ({
+        email: t.primary_email as string,
+        label: `${t.teacher_name ?? "Teacher"} — ${t.primary_email}`,
+        group: "Teacher",
+      })),
+    ...schoolAdmins
+      .filter((a) => a.email)
+      .map((a) => ({
+        email: a.email as string,
+        label: `${a.email}${a.school_name ? ` (${a.school_name})` : ""}`,
+        group: "School-admin",
+      })),
+  ];
 
   return (
     <AppShell email={user?.email} role={role}>
@@ -42,13 +66,16 @@ export default async function ManageLoginsPage() {
             backgroundColor: "color-mix(in srgb, var(--status-warning) 8%, transparent)",
           }}
         >
-          Creating logins needs <code>SUPABASE_SERVICE_ROLE_KEY</code> set as a server environment
-          variable in Vercel (Settings → Environment Variables), then a redeploy. Until then the form
-          below will report that it&apos;s missing.
+          Creating logins and resetting passwords need <code>SUPABASE_SERVICE_ROLE_KEY</code> set as a
+          server environment variable in Vercel (Settings → Environment Variables), then a redeploy.
+          Until then the forms below will report that it&apos;s missing.
         </div>
       )}
 
-      <LoginsManager teachers={teachers} />
+      <div className="flex flex-col gap-6">
+        <PasswordResetCard accounts={resetAccounts} />
+        <LoginsManager teachers={teachers} />
+      </div>
     </AppShell>
   );
 }
