@@ -8,17 +8,13 @@ import type { SchoolReportRow } from "@/app/dashboard/page";
 export default async function AnalyticsPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: role } = await supabase.rpc("get_my_role");
-  if (role === "teacher") redirect("/my-courses");
-
-  const [schoolRes, teacherRes] = await Promise.all([
+  const [{ data: { user } }, { data: role }, schoolRes, teacherRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
     supabase.rpc("get_my_school_report"),
     supabase.rpc("get_my_teacher_report"),
   ]);
+  if (role === "teacher") redirect("/my-courses");
   const { data, error } = schoolRes;
   const rows = (data ?? []) as SchoolReportRow[];
   const teachers = (teacherRes.data ?? []) as AttentionTeacher[];

@@ -6,16 +6,13 @@ import { SchoolAdminsManager, type SchoolOption, type SchoolAdminRow } from "./s
 
 export default async function ManageSchoolAdminsPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: role } = await supabase.rpc("get_my_role");
-  if (role !== "super_admin") redirect("/analytics");
-
-  const [schoolsRes, adminsRes] = await Promise.all([
+  const [{ data: { user } }, { data: role }, schoolsRes, adminsRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
     supabase.rpc("admin_list_schools"),
     supabase.rpc("admin_list_school_admins"),
   ]);
+  if (role !== "super_admin") redirect("/analytics");
   const schools = (schoolsRes.data ?? []) as SchoolOption[];
   const admins = (adminsRes.data ?? []) as SchoolAdminRow[];
   const serviceKeyConfigured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);

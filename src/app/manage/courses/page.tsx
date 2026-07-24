@@ -6,13 +6,13 @@ import { CoursesManager, type CourseRow } from "./courses-manager";
 
 export default async function ManageCoursesPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: role } = await supabase.rpc("get_my_role");
+  const [{ data: { user } }, { data: role }, { data }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
+    supabase.rpc("admin_list_courses"),
+  ]);
   if (role !== "super_admin") redirect("/analytics");
 
-  const { data } = await supabase.rpc("admin_list_courses");
   const courses = (data ?? []) as CourseRow[];
 
   return (

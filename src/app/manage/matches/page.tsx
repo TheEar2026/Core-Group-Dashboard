@@ -7,19 +7,15 @@ import { MatchesReview, type QueueItem, type PersonOption } from "./matches-revi
 export default async function MatchesPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: role } = await supabase.rpc("get_my_role");
-  if (role !== "super_admin") {
-    redirect("/analytics");
-  }
-
-  const [queueRes, teachersRes] = await Promise.all([
+  const [{ data: { user } }, { data: role }, queueRes, teachersRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
     supabase.rpc("admin_list_match_queue"),
     supabase.rpc("admin_list_teachers"),
   ]);
+  if (role !== "super_admin") {
+    redirect("/analytics");
+  }
 
   const items = (queueRes.data ?? []) as QueueItem[];
   const people = ((teachersRes.data ?? []) as { id: number; teacher_name: string | null }[]).map(

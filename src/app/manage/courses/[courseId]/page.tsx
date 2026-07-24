@@ -15,18 +15,15 @@ export default async function ManageCourseDetailPage({
   if (!Number.isInteger(id)) notFound();
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: role } = await supabase.rpc("get_my_role");
-  if (role !== "super_admin") redirect("/analytics");
-
-  const [coursesRes, modulesRes, assignedRes, allTeachersRes] = await Promise.all([
+  const [{ data: { user } }, { data: role }, coursesRes, modulesRes, assignedRes, allTeachersRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
     supabase.rpc("admin_list_courses"),
     supabase.rpc("admin_list_modules", { p_course_id: id }),
     supabase.rpc("admin_list_course_teachers", { p_course_id: id }),
     supabase.rpc("admin_list_teachers"),
   ]);
+  if (role !== "super_admin") redirect("/analytics");
 
   const course = ((coursesRes.data ?? []) as CourseRow[]).find((c) => c.course_id === id);
   if (!course) notFound();

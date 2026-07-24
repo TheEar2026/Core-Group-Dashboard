@@ -84,18 +84,16 @@ export default async function TeacherDetailPage({
 
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const [roleRes, teacherReportRes, loginActivityRes, lessonProgressRes, assignmentsRes] =
+  const [userRes, roleRes, teacherReportRes, loginActivityRes, lessonProgressRes, assignmentsRes] =
     await Promise.all([
+      supabase.auth.getUser(),
       supabase.rpc("get_my_role"),
       supabase.rpc("get_my_teacher_report"),
       supabase.rpc("get_teacher_login_history", { target_person_id: personId }),
       supabase.rpc("get_person_catalog_progress", { target_person_id: personId }),
       supabase.rpc("get_teacher_assignments", { target_person_id: personId }),
     ]);
+  const user = userRes.data.user;
   const role = roleRes.data as string | null;
   if (role === "teacher") redirect("/my-courses");
 

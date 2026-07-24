@@ -17,15 +17,18 @@ type LessonRow = {
 
 export default async function LessonProgressPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: role } = await supabase.rpc("get_my_role");
+  // Wave 1: auth, role and the course list in parallel. (The per-lesson
+  // fetches below genuinely depend on the returned course ids, so they form
+  // a second wave.)
+  const [{ data: { user } }, { data: role }, { data: coursesData, error }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
+    supabase.rpc("get_my_courses"),
+  ]);
   if (role !== "teacher") {
     redirect("/analytics");
   }
 
-  const { data: coursesData, error } = await supabase.rpc("get_my_courses");
   const courses = (coursesData ?? []) as MyCourse[];
 
   const lessonResults = await Promise.all(

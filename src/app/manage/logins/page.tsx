@@ -9,16 +9,13 @@ type SchoolAdminRow = { email: string | null; school_name: string | null };
 
 export default async function ManageLoginsPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: role } = await supabase.rpc("get_my_role");
-  if (role !== "super_admin") redirect("/analytics");
-
-  const [teacherRes, schoolAdminRes] = await Promise.all([
+  const [{ data: { user } }, { data: role }, teacherRes, schoolAdminRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
     supabase.rpc("admin_list_teacher_logins"),
     supabase.rpc("admin_list_school_admins"),
   ]);
+  if (role !== "super_admin") redirect("/analytics");
   const teachers = (teacherRes.data ?? []) as TeacherLoginRow[];
   const schoolAdmins = (schoolAdminRes.data ?? []) as SchoolAdminRow[];
   const serviceKeyConfigured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);

@@ -7,11 +7,10 @@ import { SOURCES } from "./mappings";
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: role } = await supabase.rpc("get_my_role");
+  const [{ data: { user } }, { data: role }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
+  ]);
   if (role !== "super_admin") {
     redirect("/analytics");
   }

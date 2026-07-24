@@ -6,13 +6,12 @@ import { TeacherTable, type TeacherRow } from "./teacher-table";
 export default async function TeachersPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: role } = await supabase.rpc("get_my_role");
+  const [{ data: { user } }, { data: role }, { data, error }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
+    supabase.rpc("get_my_teacher_report"),
+  ]);
   if (role === "teacher") redirect("/my-courses");
-  const { data, error } = await supabase.rpc("get_my_teacher_report");
   const rows = (data ?? []) as TeacherRow[];
 
   return (

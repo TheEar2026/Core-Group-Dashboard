@@ -46,15 +46,13 @@ export default async function SchoolTrendPage({
 
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const [roleRes, reportRes, trendRes] = await Promise.all([
+  const [userRes, roleRes, reportRes, trendRes] = await Promise.all([
+    supabase.auth.getUser(),
     supabase.rpc("get_my_role"),
     supabase.rpc("get_my_school_report"),
     supabase.rpc("get_my_school_trend", { target_school_id: schoolId }),
   ]);
+  const user = userRes.data.user;
   const role = roleRes.data as string | null;
   if (role === "teacher") redirect("/my-courses");
 

@@ -12,22 +12,18 @@ import {
 export default async function ManagePage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: role } = await supabase.rpc("get_my_role");
+  const [{ data: { user } }, { data: role }, schoolsRes, teachersRes, assignmentsRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
+    supabase.rpc("admin_list_schools"),
+    supabase.rpc("admin_list_teachers"),
+    supabase.rpc("admin_list_assignments"),
+  ]);
 
   // Management is super-admin only. School admins / teachers get bounced.
   if (role !== "super_admin") {
     redirect("/analytics");
   }
-
-  const [schoolsRes, teachersRes, assignmentsRes] = await Promise.all([
-    supabase.rpc("admin_list_schools"),
-    supabase.rpc("admin_list_teachers"),
-    supabase.rpc("admin_list_assignments"),
-  ]);
 
   const schools = (schoolsRes.data ?? []) as SchoolOption[];
   const teachers = (teachersRes.data ?? []) as TeacherOption[];

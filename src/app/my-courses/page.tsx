@@ -30,20 +30,17 @@ function fmtDateTime(v: string | null): string {
 export default async function MyCoursesPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: role } = await supabase.rpc("get_my_role");
+  const [{ data: { user } }, { data: role }, { data, error }, loginStatsRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
+    supabase.rpc("get_my_courses"),
+    supabase.rpc("get_my_login_stats"),
+  ]);
 
   // This area is teacher-only. Staff are sent to their dashboard.
   if (role !== "teacher") {
     redirect("/analytics");
   }
-
-  const [{ data, error }, loginStatsRes] = await Promise.all([
-    supabase.rpc("get_my_courses"),
-    supabase.rpc("get_my_login_stats"),
-  ]);
   const courses = (data ?? []) as MyCourse[];
   const loginStats = (loginStatsRes.data?.[0] ?? null) as LoginStats | null;
 

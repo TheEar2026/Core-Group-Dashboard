@@ -10,13 +10,15 @@ export type { SchoolReportRow } from "./school-report-table";
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: role } = await supabase.rpc("get_my_role");
+  // Fetch auth, role and data in one parallel wave instead of a serial
+  // waterfall — none depend on each other's JS result (the RPCs resolve the
+  // user server-side via auth.uid()), and the RPCs are self-gating.
+  const [{ data: { user } }, { data: role }, { data, error }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
+    supabase.rpc("get_my_school_report"),
+  ]);
   if (role === "teacher") redirect("/my-courses");
-  const { data, error } = await supabase.rpc("get_my_school_report");
   const rows = (data ?? []) as import("./school-report-table").SchoolReportRow[];
 
   return (

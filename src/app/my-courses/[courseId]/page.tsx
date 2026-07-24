@@ -20,18 +20,15 @@ export default async function CourseLessonsPage({
   if (!Number.isInteger(id)) notFound();
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: role } = await supabase.rpc("get_my_role");
-  if (role !== "teacher") {
-    redirect("/analytics");
-  }
-
-  const [coursesRes, lessonsRes] = await Promise.all([
+  const [{ data: { user } }, { data: role }, coursesRes, lessonsRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.rpc("get_my_role"),
     supabase.rpc("get_my_courses"),
     supabase.rpc("get_course_lessons", { p_course_id: id }),
   ]);
+  if (role !== "teacher") {
+    redirect("/analytics");
+  }
 
   const course = ((coursesRes.data ?? []) as MyCourse[]).find((c) => c.course_id === id);
   if (!course) notFound();
