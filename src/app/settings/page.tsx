@@ -1,19 +1,23 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
+import { DataFreshness } from "@/components/data-freshness";
 import { UploadCard } from "./upload-card";
 import { SOURCES } from "./mappings";
+import type { SchoolReportRow } from "@/app/dashboard/page";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const [{ data: { user } }, { data: role }] = await Promise.all([
+  const [{ data: { user } }, { data: role }, reportRes] = await Promise.all([
     supabase.auth.getUser(),
     supabase.rpc("get_my_role"),
+    supabase.rpc("get_my_school_report"),
   ]);
   if (role !== "super_admin") {
     redirect("/analytics");
   }
+  const rows = (reportRes.data ?? []) as SchoolReportRow[];
 
   return (
     <AppShell email={user?.email} role={role}>
@@ -26,6 +30,7 @@ export default async function SettingsPage() {
           company &mdash; only rows for your 12 Core Group schools are loaded, and the result
           tells you how many were skipped.
         </p>
+        {rows.length > 0 && <DataFreshness rows={rows} className="mt-3" />}
       </header>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

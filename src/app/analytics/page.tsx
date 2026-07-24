@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { AnalyticsCharts } from "./analytics-charts";
 import { AttentionPanel, type AttentionTeacher } from "./attention-panel";
+import { DataFreshness } from "@/components/data-freshness";
 import type { SchoolReportRow } from "@/app/dashboard/page";
 
 export default async function AnalyticsPage() {
@@ -27,6 +28,7 @@ export default async function AnalyticsPage() {
           A visual overview of engagement across the reporting group, drawn from the same live data
           as the School Report.
         </p>
+        {rows.length > 0 && <DataFreshness rows={rows} className="mt-3" />}
       </header>
 
       {error && (

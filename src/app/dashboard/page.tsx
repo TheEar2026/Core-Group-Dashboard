@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
+import { DataFreshness } from "@/components/data-freshness";
 import { SchoolReportTable } from "./school-report-table";
 
 // Re-exported so /analytics and /schools/[id] can keep importing the row shape
@@ -28,6 +29,7 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-[var(--on-surface-variant)]">
           Institutional performance across Drived, Product Fruits, and the LMS.
         </p>
+        {rows.length > 0 && <DataFreshness rows={rows} className="mt-3" />}
       </header>
 
       {error && (
