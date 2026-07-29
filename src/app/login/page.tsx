@@ -10,7 +10,7 @@ export default function LoginPage() {
             <Wordmark className="h-20 w-auto" />
           </div>
           <p className="text-[13px] font-medium uppercase tracking-wider text-[var(--on-surface-variant)]">
-            Core Group Dashboard
+            Core Group Implementation &amp; Tracking Dashboard
           </p>
         </header>
 

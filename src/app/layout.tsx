@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Core Group Dashboard — The Ear Academy",
+  title: "Core Group Implementation & Tracking Dashboard — The Ear Academy",
   description: "School usage and engagement dashboard for The Ear Academy",
 };
 
