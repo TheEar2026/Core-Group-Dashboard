@@ -8,6 +8,7 @@ export type TeacherRow = {
   person_id: number;
   teacher_name: string | null;
   primary_email: string | null;
+  school_name: string | null;
   grades: string | null;
   course_rows: number | string | null;
   total_lessons_completed: number | string | null;
@@ -20,6 +21,7 @@ export type TeacherRow = {
 
 type SortKey =
   | "teacher_name"
+  | "school_name"
   | "course_rows"
   | "avg_completion_pct"
   | "last_login_at";
@@ -58,7 +60,8 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
       ? rows.filter(
           (r) =>
             (r.teacher_name ?? "").toLowerCase().includes(q) ||
-            (r.primary_email ?? "").toLowerCase().includes(q),
+            (r.primary_email ?? "").toLowerCase().includes(q) ||
+            (r.school_name ?? "").toLowerCase().includes(q),
         )
       : rows.slice();
 
@@ -68,6 +71,9 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
       if (sortKey === "teacher_name") {
         av = (a.teacher_name ?? "").toLowerCase();
         bv = (b.teacher_name ?? "").toLowerCase();
+      } else if (sortKey === "school_name") {
+        av = (a.school_name ?? "").toLowerCase();
+        bv = (b.school_name ?? "").toLowerCase();
       } else if (sortKey === "last_login_at") {
         av = a.last_login_at ?? "";
         bv = b.last_login_at ?? "";
@@ -136,6 +142,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
             <tr className="border-b border-[var(--brand-border)]" style={{ backgroundColor: "var(--brand-header-tint)" }}>
               <SortHeader label="Teacher" keyName="teacher_name" />
               <th className={TH}>Email</th>
+              <SortHeader label="School" keyName="school_name" />
               <th className={TH}>Grade</th>
               <SortHeader label="Courses" keyName="course_rows" />
               <th className={TH}>Lessons</th>
@@ -155,6 +162,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
                   {r.teacher_name ?? "—"}
                 </td>
                 <td className={`${TD} text-[var(--on-surface-variant)]`}>{r.primary_email ?? "—"}</td>
+                <td className={`${TD} text-[var(--on-surface-variant)]`}>{r.school_name ?? "—"}</td>
                 <td className={`${TD} text-[var(--on-surface-variant)]`}>{r.grades ?? "—"}</td>
                 <td className={TD}>{fmt(r.course_rows)}</td>
                 <td className={TD}>
@@ -172,7 +180,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
+                <td colSpan={9} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
                   {query ? "No teachers match your search." : "No teachers to show."}
                 </td>
               </tr>
