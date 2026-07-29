@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/brand";
 import { TrendChart, ChartLegend } from "@/components/trend-chart";
+import { TeacherTable, type TeacherRow } from "@/app/teachers/teacher-table";
 import type { SchoolReportRow } from "@/app/dashboard/page";
 
 type TrendRow = {
@@ -46,11 +47,12 @@ export default async function SchoolTrendPage({
 
   const supabase = await createClient();
 
-  const [userRes, roleRes, reportRes, trendRes] = await Promise.all([
+  const [userRes, roleRes, reportRes, trendRes, teacherRes] = await Promise.all([
     supabase.auth.getUser(),
     supabase.rpc("get_my_role"),
     supabase.rpc("get_my_school_report"),
     supabase.rpc("get_my_school_trend", { target_school_id: schoolId }),
+    supabase.rpc("get_my_teacher_report"),
   ]);
   const user = userRes.data.user;
   const role = roleRes.data as string | null;
@@ -65,6 +67,9 @@ export default async function SchoolTrendPage({
   }
 
   const trend = (trendRes.data ?? []) as TrendRow[];
+  const schoolTeachers = ((teacherRes.data ?? []) as TeacherRow[]).filter(
+    (t) => t.school_id === schoolId,
+  );
   const dates = trend.map((t) => t.snapshot_date);
 
   return (
@@ -83,12 +88,23 @@ export default async function SchoolTrendPage({
         </header>
 
         {/* KPI strip */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Total users
             </p>
             <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{fmt(summary.drived_users)}</p>
+          </div>
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
+              Active users
+            </p>
+            <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">
+              {fmt(summary.product_fruits_active_users)}
+            </p>
+            <p className="mt-1 text-[12px] text-[var(--on-surface-variant)]">
+              {fmt(summary.product_fruits_teachers)} teachers · {fmt(summary.product_fruits_admins)} admins
+            </p>
           </div>
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
@@ -112,12 +128,30 @@ export default async function SchoolTrendPage({
           </div>
         </div>
 
+        {/* Teacher roster for this school */}
+        <div className="mb-8">
+          <h2 className="mb-3 text-base font-semibold">
+            Teachers at this school
+            <span className="ml-1.5 font-normal text-[var(--on-surface-variant)]">({schoolTeachers.length})</span>
+          </h2>
+          <TeacherTable
+            rows={schoolTeachers}
+            hideSchoolFilter
+            emptyMessage="No teachers on record for this school yet."
+          />
+        </div>
+
         {trend.length === 0 ? (
           <p className="text-sm text-[var(--on-surface-variant)]">
             No trend history recorded for this school yet.
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-6">
+            {trend.length === 1 && (
+              <p className="text-[13px] text-[var(--on-surface-variant)]">
+                Only one snapshot recorded so far — the trend below will build up as more data comes in.
+              </p>
+            )}
             {/* Drived adoption */}
             <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
               <h2 className="mb-2 text-base font-semibold">Drived adoption</h2>

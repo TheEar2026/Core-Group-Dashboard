@@ -8,6 +8,7 @@ export type TeacherRow = {
   person_id: number;
   teacher_name: string | null;
   primary_email: string | null;
+  school_id: number | null;
   school_name: string | null;
   grades: string | null;
   course_rows: number | string | null;
@@ -48,7 +49,16 @@ const TH =
   "px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--on-surface-variant)] whitespace-nowrap";
 const TD = "px-4 py-3 text-[13px] whitespace-nowrap";
 
-export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
+export function TeacherTable({
+  rows,
+  hideSchoolFilter = false,
+  emptyMessage = "No teachers to show.",
+}: {
+  rows: TeacherRow[];
+  /** Suppress the school dropdown — for embedding on a single school's own page. */
+  hideSchoolFilter?: boolean;
+  emptyMessage?: string;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [school, setSchool] = useState("");
@@ -145,27 +155,31 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
             placeholder="Search by name or email"
             className="w-full max-w-xs rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none transition-all placeholder:text-black/30 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
           />
-          <select
-            value={school}
-            onChange={(e) => setSchool(e.target.value)}
-            aria-label="Filter by school"
-            className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none transition-all focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
-          >
-            <option value="">All schools</option>
-            {schoolOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          {school && (
-            <button
-              type="button"
-              onClick={() => setSchool("")}
-              className="text-[13px] font-medium text-[var(--brand-gold)] hover:underline"
-            >
-              Clear
-            </button>
+          {!hideSchoolFilter && (
+            <>
+              <select
+                value={school}
+                onChange={(e) => setSchool(e.target.value)}
+                aria-label="Filter by school"
+                className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none transition-all focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
+              >
+                <option value="">All schools</option>
+                {schoolOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              {school && (
+                <button
+                  type="button"
+                  onClick={() => setSchool("")}
+                  className="text-[13px] font-medium text-[var(--brand-gold)] hover:underline"
+                >
+                  Clear
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -215,7 +229,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
-                  {query || school ? "No teachers match your search/filter." : "No teachers to show."}
+                  {query || school ? "No teachers match your search/filter." : emptyMessage}
                 </td>
               </tr>
             )}
