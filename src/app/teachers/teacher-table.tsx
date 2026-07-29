@@ -46,7 +46,7 @@ function fmtDate(v: string | null): string {
 }
 
 const TH =
-  "px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--on-surface-variant)] whitespace-nowrap";
+  "px-4 py-3 text-left text-[12px] font-semibold tracking-[0.05em] text-[var(--on-surface-variant)] whitespace-nowrap";
 const TD = "px-4 py-3 text-[13px] whitespace-nowrap";
 
 export function TeacherTable({
