@@ -58,13 +58,25 @@ export default async function SchoolTrendPage({
   const role = roleRes.data as string | null;
   if (role === "teacher") redirect("/my-courses");
 
-  const summary = ((reportRes.data ?? []) as SchoolReportRow[]).find(
-    (s) => s.school_id === schoolId,
-  );
+  const allSchools = (reportRes.data ?? []) as SchoolReportRow[];
+  const summary = allSchools.find((s) => s.school_id === schoolId);
 
   if (!summary) {
     notFound();
   }
+
+  // Group-wide average completion, weighted by lessons (same convention as the
+  // School Report's totals row: sum of completed / sum of assigned), so this
+  // school's rate can be read against the group rather than in isolation.
+  const groupTotals = allSchools.reduce(
+    (acc, s) => ({
+      done: acc.done + (num(s.total_lessons_completed) ?? 0),
+      assigned: acc.assigned + (num(s.total_lessons_assigned) ?? 0),
+    }),
+    { done: 0, assigned: 0 },
+  );
+  const groupAvgCompletionPct =
+    groupTotals.assigned > 0 ? Math.round((groupTotals.done / groupTotals.assigned) * 100) : null;
 
   const trend = (trendRes.data ?? []) as TrendRow[];
   const schoolTeachers = ((teacherRes.data ?? []) as TeacherRow[]).filter(
@@ -88,7 +100,7 @@ export default async function SchoolTrendPage({
         </header>
 
         {/* KPI strip */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
               Total users
@@ -120,11 +132,20 @@ export default async function SchoolTrendPage({
           </div>
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
-              Completion %
+              This school&apos;s completion
             </p>
             <div className="mt-2">
               <StatusBadge value={num(summary.lms_avg_completion_pct)} />
             </div>
+          </div>
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
+              Group average completion
+            </p>
+            <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">
+              {groupAvgCompletionPct === null ? "—" : `${groupAvgCompletionPct}%`}
+            </p>
+            <p className="mt-1 text-[12px] text-[var(--on-surface-variant)]">Across all {allSchools.length} schools</p>
           </div>
         </div>
 
