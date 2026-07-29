@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { SchoolReportRow } from "@/app/dashboard/page";
+import type { AttentionTeacher } from "./attention-panel";
 
 /* ---------- helpers ---------- */
 
@@ -172,6 +173,88 @@ function Donut({ slices }: { slices: DonutSlice[] }) {
   );
 }
 
+/* ---------- leaderboard ---------- */
+
+type Ranked = { key: string; label: string; sublabel?: string; pct: number };
+
+function rankTopAndBottom(items: Ranked[], n = 3): { top: Ranked[]; bottom: Ranked[] } {
+  const sorted = [...items].sort((a, b) => b.pct - a.pct);
+  const top = sorted.slice(0, n);
+  // Start the bottom slice right after the top ends (never earlier), so a
+  // short list can't show the same entry in both "Leading" and "Building
+  // momentum" — e.g. with 5 items and n=3, bottom is just the remaining 2.
+  const bottomStart = Math.max(n, sorted.length - n);
+  const bottom = sorted.slice(bottomStart).reverse();
+  return { top, bottom };
+}
+
+function RankList({ title, items, tone }: { title: string; items: Ranked[]; tone: string }) {
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">
+        {title}
+      </p>
+      <ul className="flex flex-col gap-2">
+        {items.map((it, i) => (
+          <li key={it.key} className="flex items-start gap-2.5 text-[13px]">
+            <span
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
+              style={{ backgroundColor: `color-mix(in srgb, ${tone} 15%, transparent)`, color: tone }}
+            >
+              {i + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="min-w-0 truncate font-medium" title={it.label}>
+                  {it.label}
+                </span>
+                <span className="shrink-0 font-semibold tabular-nums" style={{ color: tone }}>
+                  {Math.round(it.pct)}%
+                </span>
+              </div>
+              {it.sublabel && (
+                <div className="truncate text-[12px] text-[var(--on-surface-variant)]" title={it.sublabel}>
+                  {it.sublabel}
+                </div>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Leaderboard({ schools, teachers }: { schools: Ranked[]; teachers: Ranked[] }) {
+  if (schools.length === 0 && teachers.length === 0) {
+    return <EmptyPlot label="No completion data yet — leaders will appear once lessons are being ticked off." />;
+  }
+  const schoolRanks = rankTopAndBottom(schools);
+  const teacherRanks = rankTopAndBottom(teachers);
+
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="flex flex-col gap-5">
+        <p className="text-[12px] font-bold uppercase tracking-[0.05em] text-[var(--on-surface-variant)]">Schools</p>
+        <RankList title="Leading" items={schoolRanks.top} tone="var(--status-success)" />
+        <RankList title="Building momentum" items={schoolRanks.bottom} tone="var(--on-surface-variant)" />
+        {schoolRanks.top.length === 0 && (
+          <p className="text-[13px] text-[var(--on-surface-variant)]">Not enough data yet.</p>
+        )}
+      </div>
+      <div className="flex flex-col gap-5">
+        <p className="text-[12px] font-bold uppercase tracking-[0.05em] text-[var(--on-surface-variant)]">Teachers</p>
+        <RankList title="Leading" items={teacherRanks.top} tone="var(--status-success)" />
+        <RankList title="Building momentum" items={teacherRanks.bottom} tone="var(--on-surface-variant)" />
+        {teacherRanks.top.length === 0 && (
+          <p className="text-[13px] text-[var(--on-surface-variant)]">Not enough data yet.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- floating tooltip ---------- */
 
 function Tooltip({ tip }: { tip: Tip }) {
@@ -194,7 +277,7 @@ function Tooltip({ tip }: { tip: Tip }) {
 
 /* ---------- page body ---------- */
 
-export function AnalyticsCharts({ rows }: { rows: SchoolReportRow[] }) {
+export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; teachers: AttentionTeacher[] }) {
   const totalActive = rows.reduce((s, r) => s + num(r.product_fruits_active_users), 0);
   const totalTeachers = rows.reduce((s, r) => s + num(r.product_fruits_teachers), 0);
   const totalAdmins = rows.reduce((s, r) => s + num(r.product_fruits_admins), 0);
@@ -214,6 +297,26 @@ export function AnalyticsCharts({ rows }: { rows: SchoolReportRow[] }) {
       return { label: r.school_name, value: v, color: statusVar(v) };
     })
     .sort((a, b) => b.value - a.value);
+
+  // Only rank entries that actually have lessons assigned — otherwise schools/
+  // teachers with nothing loaded yet would show up as false "0%" bottom entries.
+  const rankableSchools: Ranked[] = rows
+    .filter((r) => num(r.total_lessons_assigned) > 0)
+    .map((r) => ({
+      key: String(r.school_id),
+      label: r.school_name,
+      sublabel: `${num(r.total_lessons_completed).toLocaleString()}/${num(r.total_lessons_assigned).toLocaleString()}`,
+      pct: num(r.lms_avg_completion_pct) ?? 0,
+    }));
+
+  const rankableTeachers: Ranked[] = teachers
+    .filter((t) => num(t.total_lessons_assigned) > 0)
+    .map((t) => ({
+      key: String(t.person_id),
+      label: t.teacher_name ?? `Teacher ${t.person_id}`,
+      sublabel: t.school_name ?? undefined,
+      pct: num(t.avg_completion_pct) ?? 0,
+    }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -249,13 +352,8 @@ export function AnalyticsCharts({ rows }: { rows: SchoolReportRow[] }) {
           />
         </Card>
 
-        <Card title="More metrics coming" subtitle="We'll define the key engagement metrics together">
-          <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--brand-border)] text-center">
-            <span className="text-[13px] text-[var(--on-surface-variant)]">
-              This dashboard is wired to live data. Tell me which metrics matter most
-            </span>
-            <span className="text-[13px] text-[var(--on-surface-variant)]">and I&apos;ll add the charts to track them.</span>
-          </div>
+        <Card title="Leaderboard" subtitle="Ranked by lesson completion — only counts schools/teachers with lessons assigned">
+          <Leaderboard schools={rankableSchools} teachers={rankableTeachers} />
         </Card>
       </div>
     </div>

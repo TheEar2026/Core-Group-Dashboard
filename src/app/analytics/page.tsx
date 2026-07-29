@@ -52,7 +52,7 @@ export default async function AnalyticsPage() {
       {rows.length > 0 && (
         <div className="flex flex-col gap-6">
           <AttentionPanel schools={rows} teachers={teachers} canManage={role === "super_admin"} />
-          <AnalyticsCharts rows={rows} />
+          <AnalyticsCharts rows={rows} teachers={teachers} />
         </div>
       )}
     </AppShell>
