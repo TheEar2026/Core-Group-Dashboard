@@ -51,19 +51,29 @@ const TD = "px-4 py-3 text-[13px] whitespace-nowrap";
 export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [school, setSchool] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("teacher_name");
   const [asc, setAsc] = useState(true);
 
+  const schoolOptions = useMemo(
+    () =>
+      Array.from(new Set(rows.map((r) => r.school_name).filter((s): s is string => !!s))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [rows],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const base = q
-      ? rows.filter(
-          (r) =>
-            (r.teacher_name ?? "").toLowerCase().includes(q) ||
-            (r.primary_email ?? "").toLowerCase().includes(q) ||
-            (r.school_name ?? "").toLowerCase().includes(q),
-        )
-      : rows.slice();
+    const base = rows.filter((r) => {
+      const matchesQuery =
+        !q ||
+        (r.teacher_name ?? "").toLowerCase().includes(q) ||
+        (r.primary_email ?? "").toLowerCase().includes(q) ||
+        (r.school_name ?? "").toLowerCase().includes(q);
+      const matchesSchool = !school || r.school_name === school;
+      return matchesQuery && matchesSchool;
+    });
 
     base.sort((a, b) => {
       let av: number | string;
@@ -86,7 +96,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
       return 0;
     });
     return base;
-  }, [rows, query, sortKey, asc]);
+  }, [rows, query, school, sortKey, asc]);
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
@@ -126,14 +136,38 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] shadow-sm">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 border-b border-[var(--brand-border)] p-4">
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name or email"
-          className="w-full max-w-xs rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none transition-all placeholder:text-black/30 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
-        />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--brand-border)] p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name or email"
+            className="w-full max-w-xs rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none transition-all placeholder:text-black/30 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
+          />
+          <select
+            value={school}
+            onChange={(e) => setSchool(e.target.value)}
+            aria-label="Filter by school"
+            className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none transition-all focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
+          >
+            <option value="">All schools</option>
+            {schoolOptions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          {school && (
+            <button
+              type="button"
+              onClick={() => setSchool("")}
+              className="text-[13px] font-medium text-[var(--brand-gold)] hover:underline"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -181,7 +215,7 @@ export function TeacherTable({ rows }: { rows: TeacherRow[] }) {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-4 py-8 text-center text-sm text-[var(--on-surface-variant)]">
-                  {query ? "No teachers match your search." : "No teachers to show."}
+                  {query || school ? "No teachers match your search/filter." : "No teachers to show."}
                 </td>
               </tr>
             )}
