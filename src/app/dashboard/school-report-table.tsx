@@ -157,7 +157,7 @@ export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search schools"
-          className="w-full max-w-xs rounded-lg border border-[var(--brand-border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none transition-all focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
+          className="w-full max-w-xs rounded-lg border border-[var(--brand-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--on-surface)] outline-none transition-all placeholder:text-[var(--on-surface-variant)]/50 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
         />
         <div className="flex items-center gap-2">
           {/* View toggle */}

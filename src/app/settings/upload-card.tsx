@@ -104,7 +104,7 @@ export function UploadCard({ config }: { config: SourceConfig }) {
             type="date"
             value={snapshot}
             onChange={(e) => setSnapshot(e.target.value)}
-            className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm outline-none focus:border-[var(--brand-gold)]"
+            className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-3 py-2 text-sm text-[var(--on-surface)] outline-none focus:border-[var(--brand-gold)]"
           />
         </div>
         <label className="cursor-pointer rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium transition-all hover:bg-[var(--brand-bg)]">

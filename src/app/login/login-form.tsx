@@ -22,7 +22,7 @@ export function LoginForm() {
           required
           autoComplete="email"
           placeholder="admin@theearacademy.com"
-          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-4 py-3 text-sm outline-none transition-all placeholder:text-black/30 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
+          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-4 py-3 text-sm text-[var(--on-surface)] outline-none transition-all placeholder:text-[var(--on-surface-variant)]/50 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
         />
       </div>
 
@@ -40,7 +40,7 @@ export function LoginForm() {
           required
           autoComplete="current-password"
           placeholder="••••••••"
-          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-4 py-3 text-sm outline-none transition-all placeholder:text-black/30 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
+          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-4 py-3 text-sm text-[var(--on-surface)] outline-none transition-all placeholder:text-[var(--on-surface-variant)]/50 focus:border-[var(--brand-gold)] focus:shadow-[0_0_0_2px_rgba(168,136,76,0.15)]"
         />
       </div>
 

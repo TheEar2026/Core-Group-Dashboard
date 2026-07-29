@@ -26,7 +26,7 @@ const BTN =
 const BTN_SECONDARY =
   "rounded-lg border border-[var(--brand-border)] px-3 py-1.5 text-sm font-medium transition-all hover:bg-[var(--brand-bg)] active:scale-95";
 const SELECT =
-  "rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-2 py-1.5 text-sm outline-none focus:border-[var(--brand-gold)]";
+  "rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] px-2 py-1.5 text-sm text-[var(--on-surface)] outline-none focus:border-[var(--brand-gold)]";
 
 function Bulk({
   action,
