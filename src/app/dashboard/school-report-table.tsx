@@ -101,7 +101,7 @@ export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
     const headers = [
       "School", "Drived users", "Invited", "Accepted", "Logged in", "Studied",
       "PF active users", "PF teachers", "PF admins", "PF last activity",
-      "LMS courses", "Lessons completed", "Lessons assigned", "LMS completion %",
+      "LMS enrollments", "Lessons completed", "Lessons assigned", "LMS completion %",
     ];
     const cell = (v: number | string | null | undefined) => {
       if (v === null || v === undefined) return "";
@@ -381,7 +381,7 @@ function DataTable({
               <th className={`${TH} text-right`}>Teachers</th>
               <th className={`${TH} text-right`}>Admins</th>
               <th className={`${TH} text-right`}>Last activity</th>
-              <th className={`${TH} text-right`}>Courses</th>
+              <th className={`${TH} text-right`} title="Total active course enrollments across all teachers at this school — not a distinct-course count">Enrollments</th>
               <th className={`${TH} text-right`}>Lessons</th>
               <th className={`${TH} text-right`}>
                 <button type="button" onClick={() => toggleSort("lms_avg_completion_pct")} className="inline-flex items-center gap-1 hover:text-[var(--brand-gold)]">

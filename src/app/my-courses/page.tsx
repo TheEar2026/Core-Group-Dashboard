@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
+import { completionLabel } from "@/components/brand";
 
 type MyCourse = {
   course_id: number;
@@ -18,6 +19,13 @@ function num(v: number | string | null | undefined): number {
   if (v === null || v === undefined || v === "") return 0;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isNaN(n) ? 0 : n;
+}
+
+/** For completion_pct: preserves null ("no lessons authored yet") instead of coercing it to 0. */
+function numOrNull(v: number | string | null | undefined): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isNaN(n) ? null : n;
 }
 
 function fmtDateTime(v: string | null): string {
@@ -93,7 +101,7 @@ export default async function MyCoursesPage() {
         {courses.map((c) => {
           const total = num(c.lessons_total);
           const done = num(c.lessons_completed);
-          const pct = num(c.completion_pct);
+          const pct = numOrNull(c.completion_pct);
           return (
             <Link
               key={c.course_id}
@@ -122,10 +130,10 @@ export default async function MyCoursesPage() {
                   <span className="text-[var(--on-surface-variant)]">
                     {total === 0 ? "No lessons yet" : `${done} of ${total} lessons`}
                   </span>
-                  <span className="font-semibold">{pct}%</span>
+                  <span className="font-semibold">{completionLabel(pct)}</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full" style={{ backgroundColor: "var(--brand-header-tint)" }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: "var(--brand-gold)" }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${pct ?? 0}%`, backgroundColor: "var(--brand-gold)" }} />
                 </div>
               </div>
             </Link>

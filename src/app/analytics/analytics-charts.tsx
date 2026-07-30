@@ -3,25 +3,27 @@
 import { useState } from "react";
 import type { SchoolReportRow } from "@/app/dashboard/page";
 import type { AttentionTeacher } from "./attention-panel";
+import { completionColor, completionLabel } from "@/components/brand";
 
 /* ---------- helpers ---------- */
 
+/** For values that are safe to treat as 0 when missing (counts to be summed). */
 function num(v: number | string | null | undefined): number {
   if (v === null || v === undefined || v === "") return 0;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isNaN(n) ? 0 : n;
 }
 
+/** For percentages: preserves null ("no data") instead of coercing it to 0. */
+function numOrNull(v: number | string | null | undefined): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
 function compact(n: number): string {
   if (Math.abs(n) >= 1000) return n.toLocaleString(undefined, { notation: "compact", maximumFractionDigits: 1 });
   return n.toLocaleString();
-}
-
-/** Traffic-light status colour, matching the rest of the app (green ≥80 / amber 60–79 / red <60). */
-function statusVar(pct: number): string {
-  if (pct >= 80) return "var(--status-success)";
-  if (pct >= 60) return "var(--status-warning)";
-  return "var(--status-danger)";
 }
 
 type Tip = { x: number; y: number; label: string; value: string } | null;
@@ -66,14 +68,19 @@ function HBarChart({
   data,
   formatValue = (v: number) => v.toLocaleString(),
   emptyLabel,
+  allowAllZero = false,
 }: {
   data: BarDatum[];
   formatValue?: (v: number) => string;
   emptyLabel: string;
+  /** Set when the caller has already filtered to rows with real data, so an
+   *  all-zero result (e.g. every school genuinely at 0% completion) should
+   *  still render instead of being mistaken for "nothing uploaded yet". */
+  allowAllZero?: boolean;
 }) {
   const [tip, setTip] = useState<Tip>(null);
   const max = Math.max(1, ...data.map((d) => d.value));
-  const hasData = data.some((d) => d.value > 0);
+  const hasData = allowAllZero ? data.length > 0 : data.some((d) => d.value > 0);
 
   if (!hasData) return <EmptyPlot label={emptyLabel} />;
 
@@ -112,11 +119,16 @@ function HBarChart({
 
 type DonutSlice = { label: string; value: number; color: string };
 
-function Donut({ slices }: { slices: DonutSlice[] }) {
+function Donut({ slices, total: totalOverride }: { slices: DonutSlice[]; total?: number }) {
   const [tip, setTip] = useState<Tip>(null);
-  const total = slices.reduce((s, d) => s + d.value, 0);
+  const sliceTotal = slices.reduce((s, d) => s + d.value, 0);
+  // Slices can be built from independent, possibly-overlapping counts (e.g. a
+  // person counted as both teacher and admin), so their sum can drift from
+  // the real headline total shown in the KPI tile above. Prefer the caller's
+  // authoritative total for the center label; fall back to the slice sum.
+  const total = totalOverride ?? sliceTotal;
 
-  if (total === 0) return <EmptyPlot label="No user activity yet — upload a Product Fruits export." />;
+  if (sliceTotal === 0) return <EmptyPlot label="No user activity yet — upload a Product Fruits export." />;
 
   const r = 60;
   const c = 2 * Math.PI * r;
@@ -127,7 +139,7 @@ function Donut({ slices }: { slices: DonutSlice[] }) {
       <div className="relative">
         <svg width={160} height={160} viewBox="0 0 160 160" className="-rotate-90">
           {slices.map((s) => {
-            const frac = s.value / total;
+            const frac = s.value / sliceTotal;
             const len = frac * c;
             const seg = (
               <circle
@@ -210,7 +222,7 @@ function RankList({ title, items, tone }: { title: string; items: Ranked[]; tone
                   {it.label}
                 </span>
                 <span className="shrink-0 font-semibold tabular-nums" style={{ color: tone }}>
-                  {Math.round(it.pct)}%
+                  {completionLabel(it.pct)}
                 </span>
               </div>
               {it.sublabel && (
@@ -285,16 +297,20 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
 
   const lessonsDone = rows.reduce((s, r) => s + num(r.total_lessons_completed), 0);
   const lessonsAssigned = rows.reduce((s, r) => s + num(r.total_lessons_assigned), 0);
-  const overallCompletion = lessonsAssigned > 0 ? Math.round((lessonsDone / lessonsAssigned) * 100) : 0;
+  const overallCompletion = lessonsAssigned > 0 ? Math.round((lessonsDone / lessonsAssigned) * 100) : null;
 
   const activeBySchool: BarDatum[] = [...rows]
     .map((r) => ({ label: r.school_name, value: num(r.product_fruits_active_users), color: "var(--brand-gold)" }))
     .sort((a, b) => b.value - a.value);
 
-  const completionBySchool: BarDatum[] = [...rows]
+  // Only chart schools that actually have lessons assigned — otherwise a
+  // school with no LMS data at all would show a false red "0%" bar, while
+  // the Dashboard correctly shows "—" (not applicable) for the same school.
+  const completionBySchool: BarDatum[] = rows
+    .filter((r) => num(r.total_lessons_assigned) > 0)
     .map((r) => {
-      const v = num(r.lms_avg_completion_pct);
-      return { label: r.school_name, value: v, color: statusVar(v) };
+      const v = numOrNull(r.lms_avg_completion_pct) ?? 0;
+      return { label: r.school_name, value: v, color: completionColor(v) };
     })
     .sort((a, b) => b.value - a.value);
 
@@ -306,7 +322,7 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
       key: String(r.school_id),
       label: r.school_name,
       sublabel: `${num(r.total_lessons_completed).toLocaleString()}/${num(r.total_lessons_assigned).toLocaleString()}`,
-      pct: num(r.lms_avg_completion_pct) ?? 0,
+      pct: numOrNull(r.lms_avg_completion_pct) ?? 0,
     }));
 
   const rankableTeachers: Ranked[] = teachers
@@ -315,7 +331,7 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
       key: String(t.person_id),
       label: t.teacher_name ?? `Teacher ${t.person_id}`,
       sublabel: t.school_name ?? undefined,
-      pct: num(t.avg_completion_pct) ?? 0,
+      pct: numOrNull(t.avg_completion_pct) ?? 0,
     }));
 
   return (
@@ -325,7 +341,7 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
         <Kpi label="Schools" value={rows.length.toLocaleString()} hint="Reporting group" />
         <Kpi label="Active users" value={compact(totalActive)} hint={`${totalTeachers.toLocaleString()} teachers · ${totalAdmins.toLocaleString()} admins`} />
         <Kpi label="Lessons completed" value={compact(lessonsDone)} hint={lessonsAssigned > 0 ? `of ${compact(lessonsAssigned)} assigned` : "No LMS data yet"} />
-        <Kpi label="Avg completion" value={`${overallCompletion}%`} hint="Across all courses" />
+        <Kpi label="Avg completion" value={overallCompletion === null ? "—" : `${overallCompletion}%`} hint={lessonsAssigned > 0 ? "Across all courses" : "No LMS data yet"} />
       </div>
 
       {/* Charts */}
@@ -336,6 +352,7 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
 
         <Card title="Users by role" subtitle="Split of active users across the group">
           <Donut
+            total={totalActive}
             slices={[
               { label: "Teachers", value: totalTeachers, color: "var(--chart-teacher)" },
               { label: "School admins", value: totalAdmins, color: "var(--chart-admin)" },
@@ -347,8 +364,9 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
         <Card title="Lesson completion by school" subtitle="LMS — average course completion (green ≥80% · amber 60–79% · red <60%)">
           <HBarChart
             data={completionBySchool}
-            formatValue={(v) => `${Math.round(v)}%`}
+            formatValue={(v) => completionLabel(v)}
             emptyLabel="No LMS completion data yet — upload a Lesson Progress export."
+            allowAllZero
           />
         </Card>
 

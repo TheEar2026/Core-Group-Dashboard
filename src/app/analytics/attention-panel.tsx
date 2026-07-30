@@ -134,11 +134,14 @@ export function AttentionPanel({
       }
       const pct = num(s.lms_avg_completion_pct);
       if (pct < LOW_COMPLETION_PCT) {
+        // Floor, not round: this bucket is defined as "< LOW_COMPLETION_PCT",
+        // so the displayed number must never round up to the threshold itself
+        // (e.g. 59.6% rounding to a displayed "60%" inside "Low completion").
         lowCompletion.push({
           key: `lc-${s.school_id}`,
           href,
           primary: s.school_name,
-          secondary: `${Math.round(pct)}% · ${done}/${assigned}`,
+          secondary: `${Math.floor(pct)}% · ${done}/${assigned}`,
           sort: pct,
         });
       }
@@ -163,7 +166,7 @@ export function AttentionPanel({
 
       let secondary: string;
       if (done === 0 && logins === 0) secondary = "Not started";
-      else secondary = `${Math.round(pct)}% · ${done}/${assigned}`;
+      else secondary = `${Math.floor(pct)}% · ${done}/${assigned}`;
 
       const d = logins > 0 ? daysSince(t.last_login_at) : null;
       if (d !== null && d >= INACTIVE_DAYS) secondary += ` · ${d}d since login`;
