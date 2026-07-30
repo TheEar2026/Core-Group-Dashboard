@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/brand";
+import { fmtDate } from "@/lib/format-date";
 
 export type SchoolReportRow = {
   school_id: number;
@@ -35,12 +36,6 @@ function compact(n: number): string {
   return n.toLocaleString();
 }
 
-function fmtDate(v: string | null): string {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
 
 type SortKey = "school_name" | "drived_users" | "product_fruits_active_users" | "lms_avg_completion_pct";
 type View = "cards" | "table";
@@ -115,7 +110,7 @@ export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
           r.school_name, num(r.drived_users) ?? "", num(r.drived_invited) ?? "", num(r.drived_accepted) ?? "",
           num(r.drived_logged) ?? "", num(r.drived_studied) ?? "",
           num(r.product_fruits_active_users) ?? "", num(r.product_fruits_teachers) ?? "",
-          num(r.product_fruits_admins) ?? "", r.product_fruits_last_activity ?? "",
+          num(r.product_fruits_admins) ?? "", fmtDate(r.product_fruits_last_activity),
           num(r.lms_course_rows) ?? "", num(r.total_lessons_completed) ?? "",
           num(r.total_lessons_assigned) ?? "", num(r.lms_avg_completion_pct) ?? "",
         ].map(cell).join(","),

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { ProgressBar, StatusBadge } from "@/components/brand";
+import { fmtDateTimeRelativeDay, fmtRelative } from "@/lib/format-date";
 import type { TeacherRow } from "../teacher-table";
 
 type LoginEvent = {
@@ -40,35 +41,6 @@ function num(v: number | string | null | undefined): number | null {
 function fmt(v: number | string | null | undefined): string {
   const n = num(v);
   return n === null ? "—" : n.toLocaleString();
-}
-
-function fmtDateTime(v: string | null): string {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
-
-  const now = new Date();
-  const isSameDay = d.toDateString() === now.toDateString();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday = d.toDateString() === yesterday.toDateString();
-
-  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  if (isSameDay) return `Today, ${time}`;
-  if (isYesterday) return `Yesterday, ${time}`;
-  return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}, ${time}`;
-}
-
-function fmtRelative(v: string | null): string {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
-  const diffMs = Date.now() - d.getTime();
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  if (hours < 1) return "Just now";
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  const days = Math.floor(hours / 24);
-  return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
 export default async function TeacherDetailPage({
@@ -237,7 +209,7 @@ export default async function TeacherDetailPage({
                         aria-hidden
                       />
                     )}
-                    <span className="text-sm">{fmtDateTime(e.logged_in_at)}</span>
+                    <span className="text-sm">{fmtDateTimeRelativeDay(e.logged_in_at)}</span>
                   </li>
                 ))}
               </ol>

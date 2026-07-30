@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/brand";
+import { fmtDate } from "@/lib/format-date";
 
 export type TeacherRow = {
   person_id: number;
@@ -38,12 +39,6 @@ function fmt(v: number | string | null | undefined): string {
   return n === null ? "—" : n.toLocaleString();
 }
 
-function fmtDate(v: string | null): string {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
 
 const TH =
   "px-4 py-3 text-left text-[12px] font-semibold tracking-[0.05em] text-[var(--on-surface-variant)] whitespace-nowrap";

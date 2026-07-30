@@ -1,3 +1,5 @@
+import { fmtAxisDate } from "@/lib/format-date";
+
 const WIDTH = 1000;
 const HEIGHT = 220;
 const PAD_LEFT = 40;
@@ -10,12 +12,6 @@ export type Series = {
   color: string;
   values: (number | null)[];
 };
-
-function fmtAxisDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
 
 /**
  * Minimal dependency-free SVG line/area chart. Handles sparse data (as few

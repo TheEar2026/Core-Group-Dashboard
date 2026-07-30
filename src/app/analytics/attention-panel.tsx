@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import type { SchoolReportRow } from "@/app/dashboard/page";
+import { daysSince } from "@/lib/format-date";
 
 /** Teacher row shape drawn from get_my_teacher_report (v_teacher_report). */
 export type AttentionTeacher = {
@@ -27,12 +28,6 @@ function num(v: number | string | null | undefined): number {
   return Number.isNaN(n) ? 0 : n;
 }
 
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return Math.floor((Date.now() - d.getTime()) / 86_400_000);
-}
 
 type Item = { key: string; href: string; primary: string; secondary: string; sort?: number };
 

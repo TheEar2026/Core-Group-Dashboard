@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { completionLabel } from "@/components/brand";
+import { fmtDateTime } from "@/lib/format-date";
 
 type MyCourse = {
   course_id: number;
@@ -26,13 +27,6 @@ function numOrNull(v: number | string | null | undefined): number | null {
   if (v === null || v === undefined || v === "") return null;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isNaN(n) ? null : n;
-}
-
-function fmtDateTime(v: string | null): string {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
-  return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 export default async function MyCoursesPage() {

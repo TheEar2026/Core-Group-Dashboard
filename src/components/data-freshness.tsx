@@ -49,7 +49,9 @@ function describe(iso: string | null): { text: string; tone: string; title: stri
 
   const tone =
     days > STALE_DAYS ? "var(--status-danger)" : days > AGING_DAYS ? "var(--status-warning)" : "var(--on-surface-variant)";
-  const title = d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  // Schools are all SAST regardless of who's viewing, so pin the timezone
+  // explicitly rather than relying on the viewer's/server's local clock.
+  const title = d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Johannesburg" });
   return { text, tone, title };
 }
 
