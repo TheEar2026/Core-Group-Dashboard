@@ -117,6 +117,45 @@ export function TeacherTable({
     }
   }
 
+  function exportCsv() {
+    const headers = [
+      "Teacher", "Email", "School", "Grade", "Courses",
+      "Lessons completed", "Lessons assigned", "Completion %", "Last login",
+    ];
+    const cell = (v: number | string | null | undefined) => {
+      if (v === null || v === undefined) return "";
+      const s = String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    // Export exactly what's currently shown (respects search, school filter and sort).
+    const lines = [headers.join(",")];
+    for (const r of filtered) {
+      lines.push(
+        [
+          r.teacher_name ?? "",
+          r.primary_email ?? "",
+          r.school_name ?? "",
+          r.grades ?? "",
+          num(r.course_rows) ?? "",
+          num(r.total_lessons_completed) ?? "",
+          num(r.total_lessons_assigned) ?? "",
+          num(r.avg_completion_pct) ?? "",
+          fmtDate(r.last_login_at),
+        ].map(cell).join(","),
+      );
+    }
+    // Leading BOM so Excel opens the UTF-8 file with the right encoding.
+    const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `teachers-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function SortHeader({
     label,
     keyName,
@@ -182,6 +221,20 @@ export function TeacherTable({
             </>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={filtered.length === 0}
+          className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand-gold)] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[var(--brand-gold-hover)] active:scale-[0.98] disabled:opacity-50"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export
+        </button>
       </div>
 
       <div className="overflow-x-auto">
