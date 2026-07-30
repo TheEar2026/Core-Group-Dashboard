@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toggleLesson } from "../actions";
 
 export type LessonRow = {
@@ -35,6 +35,13 @@ function groupByModule(rows: LessonRow[]): Module[] {
 export function LessonChecklist({ courseId, rows }: { courseId: number; rows: LessonRow[] }) {
   const initialModules = useMemo(() => groupByModule(rows), [rows]);
   const [modules, setModules] = useState(initialModules);
+  // Resync local state whenever the server sends fresh rows (e.g. after a
+  // revalidatePath from elsewhere) -- otherwise this component's own state
+  // never re-derives from new props past the initial mount and keeps
+  // showing pre-refresh done/total counts.
+  useEffect(() => {
+    setModules(initialModules);
+  }, [initialModules]);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 

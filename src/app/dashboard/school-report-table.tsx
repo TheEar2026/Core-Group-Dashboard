@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/brand";
 import { fmtDate } from "@/lib/format-date";
+import { compareNullsLast } from "@/lib/sort";
 
 export type SchoolReportRow = {
   school_id: number;
@@ -63,18 +64,16 @@ export function SchoolReportTable({ rows }: { rows: SchoolReportRow[] }) {
     const q = query.trim().toLowerCase();
     const base = q ? rows.filter((r) => r.school_name.toLowerCase().includes(q)) : rows.slice();
     base.sort((a, b) => {
-      let av: number | string;
-      let bv: number | string;
+      let av: number | string | null;
+      let bv: number | string | null;
       if (sortKey === "school_name") {
         av = a.school_name.toLowerCase();
         bv = b.school_name.toLowerCase();
       } else {
-        av = num(a[sortKey]) ?? -1;
-        bv = num(b[sortKey]) ?? -1;
+        av = num(a[sortKey]);
+        bv = num(b[sortKey]);
       }
-      if (av < bv) return asc ? -1 : 1;
-      if (av > bv) return asc ? 1 : -1;
-      return 0;
+      return compareNullsLast(av, bv, asc);
     });
     return base;
   }, [rows, query, sortKey, asc]);

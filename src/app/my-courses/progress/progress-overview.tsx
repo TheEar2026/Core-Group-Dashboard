@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toggleLesson } from "../actions";
 
 type Lesson = { lesson_id: number; title: string; completed: boolean };
@@ -33,6 +33,13 @@ function Chevron({ open }: { open: boolean }) {
 
 export function ProgressOverview({ groups: initialGroups }: { groups: CourseGroup[] }) {
   const [groups, setGroups] = useState(initialGroups);
+  // Resync whenever the server sends fresh groups (e.g. after a
+  // revalidatePath triggered elsewhere) -- otherwise this state never
+  // re-derives from new props past the initial mount and keeps showing
+  // pre-refresh progress.
+  useEffect(() => {
+    setGroups(initialGroups);
+  }, [initialGroups]);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [hideCompleted, setHideCompleted] = useState(false);

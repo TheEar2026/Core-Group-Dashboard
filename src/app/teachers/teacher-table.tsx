@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/brand";
 import { fmtDate } from "@/lib/format-date";
+import { compareNullsLast } from "@/lib/sort";
 
 export type TeacherRow = {
   person_id: number;
@@ -81,24 +82,22 @@ export function TeacherTable({
     });
 
     base.sort((a, b) => {
-      let av: number | string;
-      let bv: number | string;
+      let av: number | string | null;
+      let bv: number | string | null;
       if (sortKey === "teacher_name") {
-        av = (a.teacher_name ?? "").toLowerCase();
-        bv = (b.teacher_name ?? "").toLowerCase();
+        av = a.teacher_name ? a.teacher_name.toLowerCase() : null;
+        bv = b.teacher_name ? b.teacher_name.toLowerCase() : null;
       } else if (sortKey === "school_name") {
-        av = (a.school_name ?? "").toLowerCase();
-        bv = (b.school_name ?? "").toLowerCase();
+        av = a.school_name ? a.school_name.toLowerCase() : null;
+        bv = b.school_name ? b.school_name.toLowerCase() : null;
       } else if (sortKey === "last_login_at") {
-        av = a.last_login_at ?? "";
-        bv = b.last_login_at ?? "";
+        av = a.last_login_at;
+        bv = b.last_login_at;
       } else {
-        av = num(a[sortKey]) ?? -1;
-        bv = num(b[sortKey]) ?? -1;
+        av = num(a[sortKey]);
+        bv = num(b[sortKey]);
       }
-      if (av < bv) return asc ? -1 : 1;
-      if (av > bv) return asc ? 1 : -1;
-      return 0;
+      return compareNullsLast(av, bv, asc);
     });
     return base;
   }, [rows, query, school, sortKey, asc]);

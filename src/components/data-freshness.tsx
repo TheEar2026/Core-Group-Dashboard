@@ -47,8 +47,12 @@ function describe(iso: string | null): { text: string; tone: string; title: stri
   else if (days < 60) text = `updated ${Math.round(days / 7)} weeks ago`;
   else text = `updated ${Math.round(days / 30)} months ago`;
 
+  // >= on both sides of the same STALE_DAYS/AGING_DAYS thresholds, so the
+  // color can never disagree with the text at the boundary (previously,
+  // exactly 14 days showed "2 weeks ago" in amber, not red, contradicting
+  // "red past a fortnight").
   const tone =
-    days > STALE_DAYS ? "var(--status-danger)" : days > AGING_DAYS ? "var(--status-warning)" : "var(--on-surface-variant)";
+    days >= STALE_DAYS ? "var(--status-danger)" : days >= AGING_DAYS ? "var(--status-warning)" : "var(--on-surface-variant)";
   // Schools are all SAST regardless of who's viewing, so pin the timezone
   // explicitly rather than relying on the viewer's/server's local clock.
   const title = d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Johannesburg" });

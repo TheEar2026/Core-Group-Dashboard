@@ -125,10 +125,14 @@ export default async function TeacherDetailPage({
             </p>
           </div>
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
+            <p
+              className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]"
+              title="Counts password sign-ins only -- a long-lived session doesn't add to this."
+            >
               Total logins
             </p>
             <p className="mt-2 text-[30px] font-bold tracking-[-0.02em]">{fmt(profile.login_count)}</p>
+            <p className="mt-1 text-[12px] text-[var(--on-surface-variant)]">Password sign-ins</p>
           </div>
           <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--surface)] p-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">
