@@ -96,6 +96,10 @@ export default async function MyCoursesPage() {
           const total = num(c.lessons_total);
           const done = num(c.lessons_completed);
           const pct = numOrNull(c.completion_pct);
+          // Frame the card by where the teacher actually is, instead of a
+          // bare arrow -- "Start" a course they haven't touched, "Continue"
+          // one in progress, "Completed" one they've finished.
+          const status = total === 0 ? null : done === 0 ? "Start" : done === total ? "Completed" : "Continue";
           return (
             <Link
               key={c.course_id}
@@ -114,8 +118,11 @@ export default async function MyCoursesPage() {
                   )}
                   <p className="mt-2 text-[16px] font-semibold group-hover:text-[var(--brand-gold)]">{c.title}</p>
                 </div>
-                <span className="text-[var(--on-surface-variant)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-gold)]" aria-hidden>
-                  →
+                <span
+                  className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[var(--on-surface-variant)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-gold)]"
+                >
+                  {status}
+                  <span aria-hidden>→</span>
                 </span>
               </div>
 

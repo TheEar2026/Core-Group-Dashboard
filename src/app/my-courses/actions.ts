@@ -22,3 +22,21 @@ export async function toggleLesson(
   revalidatePath("/my-courses/progress");
   return { ok: true };
 }
+
+export async function toggleModule(
+  moduleId: number,
+  courseId: number,
+  completed: boolean,
+): Promise<ToggleResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_module_complete", {
+    p_module_id: moduleId,
+    p_completed: completed,
+  });
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/my-courses");
+  revalidatePath(`/my-courses/${courseId}`);
+  revalidatePath("/my-courses/progress");
+  return { ok: true };
+}
