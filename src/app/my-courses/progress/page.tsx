@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
+import { safeErrorMessage } from "@/lib/errors";
 import { ProgressOverview, type CourseGroup } from "./progress-overview";
 
 type MyCourse = { course_id: number; grade: string | null; title: string };
@@ -74,7 +75,7 @@ export default async function LessonProgressPage() {
             backgroundColor: "color-mix(in srgb, var(--status-danger) 8%, transparent)",
           }}
         >
-          Couldn&apos;t load your progress: {error.message}
+          Couldn&apos;t load your progress: {safeErrorMessage(error.message, role)}
         </div>
       )}
 

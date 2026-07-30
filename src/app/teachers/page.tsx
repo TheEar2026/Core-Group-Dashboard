@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
+import { safeErrorMessage } from "@/lib/errors";
 import { TeacherTable, type TeacherRow } from "./teacher-table";
 
 export default async function TeachersPage() {
@@ -33,7 +34,7 @@ export default async function TeachersPage() {
               backgroundColor: "color-mix(in srgb, var(--status-danger) 8%, transparent)",
             }}
           >
-            Couldn&apos;t load teachers: {error.message}
+            Couldn&apos;t load teachers: {safeErrorMessage(error.message, role)}
           </div>
         )}
 

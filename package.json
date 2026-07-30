@@ -11,10 +11,11 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.1",
     "@supabase/supabase-js": "^2.110.4",
-    "next": "16.2.10",
+    "next": "16.2.12",
     "papaparse": "^5.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "server-only": "^0.0.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
@@ -24,7 +25,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

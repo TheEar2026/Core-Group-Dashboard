@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { completionLabel } from "@/components/brand";
 import { fmtDateTime } from "@/lib/format-date";
+import { safeErrorMessage } from "@/lib/errors";
 
 type MyCourse = {
   course_id: number;
@@ -81,7 +82,7 @@ export default async function MyCoursesPage() {
             backgroundColor: "color-mix(in srgb, var(--status-danger) 8%, transparent)",
           }}
         >
-          Couldn&apos;t load your courses: {error.message}
+          Couldn&apos;t load your courses: {safeErrorMessage(error.message, role)}
         </div>
       )}
 

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { DataFreshness } from "@/components/data-freshness";
+import { safeErrorMessage } from "@/lib/errors";
 import { SchoolReportTable } from "./school-report-table";
 
 // Re-exported so /analytics and /schools/[id] can keep importing the row shape
@@ -42,7 +43,7 @@ export default async function DashboardPage() {
             backgroundColor: "color-mix(in srgb, var(--status-danger) 8%, transparent)",
           }}
         >
-          Couldn&apos;t load the report: {error.message}
+          Couldn&apos;t load the report: {safeErrorMessage(error.message, role)}
         </div>
       )}
 

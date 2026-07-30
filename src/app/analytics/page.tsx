@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { AnalyticsCharts } from "./analytics-charts";
 import { AttentionPanel, type AttentionTeacher } from "./attention-panel";
 import { DataFreshness } from "@/components/data-freshness";
+import { safeErrorMessage } from "@/lib/errors";
 import type { SchoolReportRow } from "@/app/dashboard/page";
 
 export default async function AnalyticsPage() {
@@ -41,7 +42,7 @@ export default async function AnalyticsPage() {
             backgroundColor: "color-mix(in srgb, var(--status-danger) 8%, transparent)",
           }}
         >
-          Couldn&apos;t load analytics: {error.message}
+          Couldn&apos;t load analytics: {safeErrorMessage(error.message, role)}
         </div>
       )}
 
