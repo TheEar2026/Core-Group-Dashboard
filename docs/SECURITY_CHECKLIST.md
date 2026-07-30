@@ -39,16 +39,17 @@ These were checked during the review and are in good shape — keep them true as
 
 ## C. Still open — Priority 1 (before wider rollout)
 
-- ⬜ ⚙️ **Turn on CAPTCHA for auth** (hCaptcha or Cloudflare Turnstile) — top defense against credential stuffing / login brute-force. **Needs you to sign up with a provider** and hand me the site key + secret key; I can't create that account on your behalf. Once you have keys, this is a real code change too — the login form has no CAPTCHA widget today, so flipping the Supabase-side setting on alone (without the matching widget) would lock every real login out. Do both together.
-- ⬜ ⚙️ **Sign-in rate limiting beyond CAPTCHA.** The Supabase Auth config only exposes tunable limits for OTP/email/SMS/token-refresh, not a dedicated "password sign-in attempts per IP" knob — that's enforced by Supabase's own gateway defaults and isn't independently adjustable via the API. CAPTCHA above is the main lever actually available to us.
 - ⬜ 🔧⚙️ **Temp-password lifecycle** (force a password change on first login). Deliberately not built this pass — it needs a teacher-facing "set a new password" form, and you've said all resets go through you manually rather than any self-service flow. Revisit only if that policy changes.
 - ⬜ 📋 **Rotate credentials pasted into this chat session.** The Supabase Management API personal access token used to apply migrations this session (and an earlier one that has since 401'd) were both pasted directly into the conversation. Treat both as exposed and rotate the current one at supabase.com/dashboard/account/tokens once you're done needing me to run migrations for a while — chat transcripts persist, so a live admin token sitting in one is a standing risk. Also worth double-checking the service-role key itself was never pasted the same way.
 
-## D. Priority 2 (hardening)
+## D. Priority 2 (hardening) — declined
 
-- ⬜ ⚙️ **Enable database backups / Point-in-Time-Recovery** in Supabase — a plan/billing decision, left to you.
-- ⬜ 🔧⚙️ **MFA on the super-admin account.** Good news: TOTP MFA enroll/verify is already enabled at the Supabase Auth project level (checked directly — `mfa_totp_enroll_enabled`/`mfa_totp_verify_enabled` are both on). What's missing is an enrollment UI — this app uses a fully custom login/auth flow with no built-in MFA screens, so enrolling and challenging TOTP needs its own small feature (a "Set up 2FA" page calling `supabase.auth.mfa.enroll/challenge/verify`, plus an AAL2 check in the proxy for the super-admin route). Worth its own pass if you want it.
-- ⬜ 🔧 **Teacher self-service password change** — explicitly decided against; you're handling all resets manually.
+Explicitly decided against for now — not gaps we missed, just called out of scope on purpose:
+
+- ❌ **CAPTCHA for auth** (hCaptcha/Turnstile) and the sign-in-rate-limiting that rides on it. Would've needed a third-party provider signup + a login-form widget; skipped.
+- ❌ **MFA on the super-admin account.** The backend capability is already enabled at the Supabase Auth level (`mfa_totp_enroll_enabled`/`mfa_totp_verify_enabled` are both on) if this is ever revisited, but building the enrollment UI is skipped for now.
+- ❌ **Database backups / Point-in-Time-Recovery** — a Supabase plan/billing decision, left as-is.
+- ❌ **Teacher self-service password change** — you're handling all resets manually.
 
 ## E. Priority 3 / ongoing
 
