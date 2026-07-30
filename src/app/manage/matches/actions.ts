@@ -40,5 +40,9 @@ export async function backfillPfSchools(_prev: BulkState): Promise<BulkState> {
   const { data, error } = await supabase.rpc("admin_backfill_pf_schools");
   if (error) return { ok: false, message: error.message };
   revalidatePath("/manage/matches");
-  return { ok: true, message: `Updated ${data ?? 0} Product Fruits activity row(s).` };
+  const result = data as { activity_rows?: number; people_rows?: number } | null;
+  return {
+    ok: true,
+    message: `Updated ${result?.activity_rows ?? 0} Product Fruits activity row(s) and ${result?.people_rows ?? 0} teacher record(s).`,
+  };
 }
