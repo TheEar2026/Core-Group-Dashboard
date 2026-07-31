@@ -4,6 +4,23 @@ import { useState } from "react";
 import type { SchoolReportRow } from "@/app/dashboard/page";
 import type { AttentionTeacher } from "./attention-panel";
 import { completionColor, completionLabel } from "@/components/brand";
+import { TrendChart, ChartLegend } from "@/components/trend-chart";
+
+export type GroupTrendRow = {
+  snapshot_date: string;
+  drived_users: number | string | null;
+  drived_invited: number | string | null;
+  drived_accepted: number | string | null;
+  drived_logged: number | string | null;
+  drived_studied: number | string | null;
+  total_lessons_completed: number | string | null;
+  total_lessons_assigned: number | string | null;
+  lms_avg_completion_pct: number | string | null;
+};
+
+const TREND_GOLD = "#A8884C";
+const TREND_GOLD_DARK = "#6B5A2E";
+const TREND_GRAY = "#94A3B8";
 
 /* ---------- helpers ---------- */
 
@@ -289,7 +306,15 @@ function Tooltip({ tip }: { tip: Tip }) {
 
 /* ---------- page body ---------- */
 
-export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; teachers: AttentionTeacher[] }) {
+export function AnalyticsCharts({
+  rows,
+  teachers,
+  trend,
+}: {
+  rows: SchoolReportRow[];
+  teachers: AttentionTeacher[];
+  trend: GroupTrendRow[];
+}) {
   const totalActive = rows.reduce((s, r) => s + num(r.product_fruits_active_users), 0);
   const totalTeachers = rows.reduce((s, r) => s + num(r.product_fruits_teachers), 0);
   const totalAdmins = rows.reduce((s, r) => s + num(r.product_fruits_admins), 0);
@@ -334,6 +359,8 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
       pct: numOrNull(t.avg_completion_pct) ?? 0,
     }));
 
+  const trendDates = trend.map((t) => t.snapshot_date);
+
   return (
     <div className="flex flex-col gap-6">
       {/* KPI row */}
@@ -343,6 +370,62 @@ export function AnalyticsCharts({ rows, teachers }: { rows: SchoolReportRow[]; t
         <Kpi label="Lessons completed" value={compact(lessonsDone)} hint={lessonsAssigned > 0 ? `of ${compact(lessonsAssigned)} assigned` : "No LMS data yet"} />
         <Kpi label="Avg completion" value={overallCompletion === null ? "—" : `${overallCompletion}%`} hint={lessonsAssigned > 0 ? "Across all courses" : "No LMS data yet"} />
       </div>
+
+      {/* Progress over time */}
+      <Card
+        title="Progress over time"
+        subtitle="Group-wide lesson completion and Drive Ed adoption across every snapshot uploaded so far"
+      >
+        {trend.length === 0 ? (
+          <EmptyPlot label="No trend history yet — this builds up as more Drive Ed/lesson-progress snapshots are uploaded." />
+        ) : (
+          <>
+            {trend.length === 1 && (
+              <p className="mb-4 text-[13px] text-[var(--on-surface-variant)]">
+                Only one snapshot recorded so far — this will build into a real trend as more data comes in.
+              </p>
+            )}
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <div>
+                <h3 className="mb-3 text-[12px] font-bold uppercase tracking-[0.05em] text-[var(--on-surface-variant)]">
+                  Lesson completion %
+                </h3>
+                <TrendChart
+                  dates={trendDates}
+                  valueSuffix="%"
+                  series={[
+                    {
+                      label: "Completion %",
+                      color: TREND_GOLD,
+                      values: trend.map((t) => numOrNull(t.lms_avg_completion_pct)),
+                    },
+                  ]}
+                />
+              </div>
+              <div>
+                <h3 className="mb-3 text-[12px] font-bold uppercase tracking-[0.05em] text-[var(--on-surface-variant)]">
+                  Drive Ed adoption
+                </h3>
+                <ChartLegend
+                  series={[
+                    { label: "Users", color: TREND_GOLD },
+                    { label: "Logged in", color: TREND_GOLD_DARK },
+                    { label: "Studied", color: TREND_GRAY },
+                  ]}
+                />
+                <TrendChart
+                  dates={trendDates}
+                  series={[
+                    { label: "Users", color: TREND_GOLD, values: trend.map((t) => numOrNull(t.drived_users)) },
+                    { label: "Logged in", color: TREND_GOLD_DARK, values: trend.map((t) => numOrNull(t.drived_logged)) },
+                    { label: "Studied", color: TREND_GRAY, values: trend.map((t) => numOrNull(t.drived_studied)) },
+                  ]}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </Card>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

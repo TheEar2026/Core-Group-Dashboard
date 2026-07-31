@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
-import { AnalyticsCharts } from "./analytics-charts";
+import { AnalyticsCharts, type GroupTrendRow } from "./analytics-charts";
 import { AttentionPanel, type AttentionTeacher } from "./attention-panel";
 import { DataFreshness } from "@/components/data-freshness";
 import { safeErrorMessage } from "@/lib/errors";
@@ -10,16 +10,18 @@ import type { SchoolReportRow } from "@/app/dashboard/page";
 export default async function AnalyticsPage() {
   const supabase = await createClient();
 
-  const [{ data: { user } }, { data: role }, schoolRes, teacherRes] = await Promise.all([
+  const [{ data: { user } }, { data: role }, schoolRes, teacherRes, trendRes] = await Promise.all([
     supabase.auth.getUser(),
     supabase.rpc("get_my_role"),
     supabase.rpc("get_my_school_report"),
     supabase.rpc("get_my_teacher_report"),
+    supabase.rpc("get_my_group_trend"),
   ]);
   if (role === "teacher") redirect("/my-courses");
   const { data, error } = schoolRes;
   const rows = (data ?? []) as SchoolReportRow[];
   const teachers = (teacherRes.data ?? []) as AttentionTeacher[];
+  const trend = (trendRes.data ?? []) as GroupTrendRow[];
 
   return (
     <AppShell email={user?.email} role={role}>
@@ -53,7 +55,7 @@ export default async function AnalyticsPage() {
       {rows.length > 0 && (
         <div className="flex flex-col gap-6">
           <AttentionPanel schools={rows} teachers={teachers} canManage={role === "super_admin"} />
-          <AnalyticsCharts rows={rows} teachers={teachers} />
+          <AnalyticsCharts rows={rows} teachers={teachers} trend={trend} />
         </div>
       )}
     </AppShell>
